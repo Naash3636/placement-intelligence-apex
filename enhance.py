@@ -26,7 +26,7 @@ if "auth_token" not in st.session_state:
 st.set_page_config(
     page_title="Placement Intelligence Apex",
     layout="wide",
-    page_icon="(empty)"
+    page_icon="  "
 )
 
 # ================================
@@ -150,7 +150,7 @@ def login_page():
 
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
 
-        st.title("(empty) Placement Intelligence Apex")
+        st.title("   Placement Intelligence Apex")
         st.caption("AI Powered Placement Analytics Portal")
 
         login_type = st.selectbox(
@@ -310,9 +310,9 @@ def generate_narrative_report(df):
 
     report["Package Analysis"] = (
         f"{highest_company} offers the highest average package "
-        f"at (empty){round(highest_package,2)} LPA. "
+        f"at   {round(highest_package,2)} LPA. "
         f"The median package across companies is about "
-        f"(empty){round(median_salary,2)} LPA."
+        f"  {round(median_salary,2)} LPA."
     )
 
     # ---------------- Branch Analysis ----------------
@@ -381,7 +381,7 @@ def placement_ai_copilot(question, df):
         company = avg_package.idxmax()
         package = avg_package.max()
 
-        return f"The highest paying company is {company} offering about (empty){round(package,2)} LPA."
+        return f"The highest paying company is {company} offering about   {round(package,2)} LPA."
 
     elif "most students" in question or "most hiring" in question:
 
@@ -518,7 +518,7 @@ Student : {row['Name']}
 
 Company : {row['Company']}
 
-Package : (empty){row['Package']} LPA
+Package :   {row['Package']} LPA
 """
 
 
@@ -559,7 +559,7 @@ Package : (empty){row['Package']} LPA
 
             for _, r in top.iterrows():
 
-                result += f"{r['Name']} - {r['Company']} - (empty){r['Package']} LPA\n"
+                result += f"{r['Name']} - {r['Company']} -   {r['Package']} LPA\n"
 
             return result
 
@@ -610,7 +610,7 @@ Package : (empty){row['Package']} LPA
 
             avg = data["Package"].mean()
 
-            return f"Average Package : (empty){round(avg,2)} LPA"
+            return f"Average Package :   {round(avg,2)} LPA"
 
 
         if "cgpa" in q:
@@ -850,7 +850,7 @@ with tabs[0]:
     with col1:
         st.markdown("""
         <div class="glass-header">
-        (empty) Placement Intelligence Apex
+           Placement Intelligence Apex
         </div>
         """, unsafe_allow_html=True)
         st.write(f"Welcome **{username}**")
@@ -877,18 +877,18 @@ with tabs[0]:
 
     c1,c2,c3,c4,c5 = st.columns(5)
 
-    c1.metric("(empty) Students", total_students)
-    c2.metric("(empty) Placements", placed_students)
-    c3.metric("(empty) Companies", companies)
-    c4.metric("(empty) Avg Package", f"{avg_package} LPA")
-    c5.metric("(empty) Placement Rate", f"{placement_rate}%")
+    c1.metric(" Students", total_students)
+    c2.metric(" Placements", placed_students)
+    c3.metric("   Companies", companies)
+    c4.metric("   Avg Package", f"{avg_package} LPA")
+    c5.metric("   Placement Rate", f"{placement_rate}%")
 
     st.markdown("---")
 
    
     # ================= ai =================
 
-    st.subheader("(empty) AI Dataset Analyst")
+    st.subheader("   AI Dataset Analyst")
 
     question = st.text_input("Ask anything about the dataset")
 
@@ -898,7 +898,7 @@ with tabs[0]:
 
         st.success(answer)
 
-    st.subheader("(empty) AI Graph Generator")
+    st.subheader("   AI Graph Generator")
 
     graph_query = st.text_input("Ask for any graph")
 
@@ -921,11 +921,11 @@ with tabs[0]:
 # UNIVERSITY DASHBOARD
 # =======================
 with tabs[1]:
-    st.markdown("## (empty) Placement Overview Dashboard")
+    st.markdown("##    Placement Overview Dashboard")
 
     # ================= YEAR DISTRIBUTION =================
 
-    st.subheader("(empty) Year-wise Student Distribution")
+    st.subheader("   Year-wise Student Distribution")
 
     year_count = df.groupby("Year")["StudentID"].nunique().reset_index()
     year_count.columns = ["Year", "Student Count"]
@@ -942,7 +942,7 @@ with tabs[1]:
     st.plotly_chart(fig1, use_container_width=True)
 
     # ---------------- YEAR-WISE PLACEMENT RATE ----------------
-    st.markdown("### (empty) Year-wise Placement Rate")
+    st.markdown("###    Year-wise Placement Rate")
 
     year_placement = df.groupby("Year").apply(
         lambda x: round((x[x["Status"]=="Placed"]["StudentID"].nunique()
@@ -960,7 +960,7 @@ with tabs[1]:
     st.plotly_chart(fig2, use_container_width=True)
 
     # ---------------- YEAR-WISE AVERAGE PACKAGE ----------------
-    st.markdown("### (empty) Year-wise Average Package")
+    st.markdown("###    Year-wise Average Package")
 
     year_package = df[df["Status"]=="Placed"].groupby("Year")["Package"].mean().reset_index()
     year_package["Package"] = round(year_package["Package"],2)
@@ -973,7 +973,7 @@ with tabs[1]:
     st.plotly_chart(fig3, use_container_width=True)
 
     # ---------------- STATUS DISTRIBUTION ----------------
-    st.markdown("### (empty) Overall Placement Distribution")
+    st.markdown("###    Overall Placement Distribution")
 
     status_count = df["Status"].value_counts().reset_index()
     status_count.columns = ["Status", "Count"]
@@ -997,7 +997,7 @@ with tabs[1]:
 
     # ================= BRANCH PERFORMANCE =================
 
-    st.subheader("(empty) Branch Placement Contribution")
+    st.subheader("   Branch Placement Contribution")
 
     branch_perf = df[df["Status"]=="Placed"].groupby("Branch")["StudentID"].nunique().reset_index()
 
@@ -1013,7 +1013,7 @@ with tabs[1]:
 
     # ================= TOP COMPANIES =================
 
-    st.subheader("(empty) Top Hiring Companies")
+    st.subheader("   Top Hiring Companies")
 
     top_companies = df[df["Status"]=="Placed"]["Company"].value_counts().head(10).reset_index()
     top_companies.columns = ["Company","Placements"]
@@ -1038,7 +1038,7 @@ with tabs[1]:
 
 with tabs[2]:
 
-    st.markdown("## (empty) Student Performance Dashboard")
+    st.markdown("##    Student Performance Dashboard")
 
     search = st.text_input("Search Student (ID or Name)")
 
@@ -1081,7 +1081,7 @@ with tabs[2]:
             success_ratio = round((placed / total_attempts) * 100, 2)
 
             # ================= PROFILE =================
-            st.markdown("### (empty) Student Profile")
+            st.markdown("###    Student Profile")
 
             col1, col2 = st.columns([1,3])
 
@@ -1098,17 +1098,17 @@ with tabs[2]:
                 """)
 
             # ================= KPI =================
-            st.markdown("### (empty) Performance Overview")
+            st.markdown("###    Performance Overview")
 
             c1, c2, c3, c4 = st.columns(4)
 
-            c1.metric("(empty) Total Attempts", total_attempts)
-            c2.metric("(empty) Offers", placed)
-            c3.metric("(empty) Rejected", rejected)
-            c4.metric("(empty) Success %", f"{success_ratio}%")
+            c1.metric("   Total Attempts", total_attempts)
+            c2.metric("   Offers", placed)
+            c3.metric("   Rejected", rejected)
+            c4.metric("   Success %", f"{success_ratio}%")
 
             # ================= SUCCESS RATIO =================
-            st.markdown("### (empty) Success Ratio Analysis")
+            st.markdown("###    Success Ratio Analysis")
 
             fig1 = px.pie(
                 names=["Placed","Rejected"],
@@ -1120,7 +1120,7 @@ with tabs[2]:
             st.plotly_chart(fig1,use_container_width=True)
 
             # ================= PLACEMENT HISTORY =================
-            st.markdown("### (empty) Placement History")
+            st.markdown("###    Placement History")
 
             fig2 = px.bar(
                 stu_data,
@@ -1136,7 +1136,7 @@ with tabs[2]:
             st.dataframe(stu_data[["Company","Package","Status","Placed_Date"]])
 
             # ================= SGPA TREND =================
-            st.markdown("### (empty) Semester-wise CGPA Trend")
+            st.markdown("###    Semester-wise CGPA Trend")
 
             sem_df = pd.DataFrame({
                 "Semester":[1,2,3,4,5,6,7,8],
@@ -1256,22 +1256,22 @@ with tabs[2]:
             else:
                 rating = 1
 
-            st.metric("Performance Rating (1(empty)5 (empty))", f"{rating} (empty)")
+            st.metric("Performance Rating (1  5   )", f"{rating}   ")
 
             # ================= ACHIEVEMENTS =================
 
-            st.markdown("### (empty) Achievements & Activities")
+            st.markdown("###    Achievements & Activities")
 
             a1,a2,a3 = st.columns(3)
 
-            a1.metric("(empty) Hackathons", profile["Hackathons"])
-            a1.metric("(empty) Sports", profile["Sports"])
+            a1.metric("   Hackathons", profile["Hackathons"])
+            a1.metric("   Sports", profile["Sports"])
 
-            a2.metric("(empty) Papers Published", profile["Papers"])
-            a2.metric("(empty) Conferences", profile["Conferences"])
+            a2.metric("   Papers Published", profile["Papers"])
+            a2.metric("   Conferences", profile["Conferences"])
 
-            a3.metric("(empty) Internships", profile["Internships"])
-            a3.metric("(empty) Clubs", profile["Clubs"])
+            a3.metric("   Internships", profile["Internships"])
+            a3.metric("   Clubs", profile["Clubs"])
 
 # =======================
 # ADMIN COMPANY ANALYSIS
@@ -1283,7 +1283,7 @@ with tabs[3]:
     # ============================================================
 
     st.markdown("---")
-    st.subheader("(empty) Company-wise Selection Analysis")
+    st.subheader("   Company-wise Selection Analysis")
 
     company_year = df[df["Status"]=="Placed"].groupby(["Year","Company"])["StudentID"].nunique().reset_index()
 
@@ -1305,7 +1305,7 @@ with tabs[3]:
 
     # =====================================================
 
-    st.markdown("## (empty) AI Placement Insights")
+    st.markdown("##    AI Placement Insights")
 
     report = generate_narrative_report(df)
 
@@ -1316,14 +1316,14 @@ with tabs[3]:
     # ADVANCED COMPANY ANALYTICS DASHBOARD (ADMIN)
     # =====================================================
 
-    st.markdown("## (empty) Advanced Company Analytics")
+    st.markdown("##    Advanced Company Analytics")
 
     placed_df = df[df["Status"]=="Placed"].copy()
 
 # -----------------------------------------------------
 # 1. COMPANY HIRING PERFORMANCE ANALYSIS
 # -----------------------------------------------------
-    st.markdown("### 1(empty) Company Hiring Performance")
+    st.markdown("### 1   Company Hiring Performance")
 
     company_perf = df.groupby("Company").agg(
         Applicants=("StudentID","count"),
@@ -1347,7 +1347,7 @@ with tabs[3]:
 # -----------------------------------------------------
 # 2. COMPANY PACKAGE ANALYSIS
 # -----------------------------------------------------
-    st.markdown("### 2(empty) Company Package Analysis")
+    st.markdown("### 2   Company Package Analysis")
 
     package_stats = placed_df.groupby("Company")["Package"].agg(
         Highest="max",
@@ -1375,7 +1375,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 3. BRANCH-WISE COMPANY HIRING
     # -----------------------------------------------------
-    st.markdown("### 3(empty) Branch-wise Company Preference")
+    st.markdown("### 3   Branch-wise Company Preference")
 
     branch_company = placed_df.groupby(
         ["Branch","Company"]
@@ -1394,7 +1394,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 4. COMPANY DEMAND ANALYSIS
     # -----------------------------------------------------
-    st.markdown("### 4(empty) Company Demand Analysis")
+    st.markdown("### 4   Company Demand Analysis")
 
     demand = df.groupby("Company").agg(
         Applicants=("StudentID","count"),
@@ -1418,7 +1418,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 5. COMPANY DIFFICULTY INDEX
     # -----------------------------------------------------
-    st.markdown("### 5(empty) Company Difficulty Index")
+    st.markdown("### 5   Company Difficulty Index")
 
     difficulty = demand.copy()
     difficulty["Difficulty Score"] = round(
@@ -1437,7 +1437,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 6. COMPANY VISIT TREND
     # -----------------------------------------------------
-    st.markdown("### 6(empty) Company Visit Trend")
+    st.markdown("### 6   Company Visit Trend")
 
     company_year = df.groupby(["Year","Company"])["StudentID"].count().reset_index()
 
@@ -1454,7 +1454,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 7. OFFER ACCEPTANCE ANALYSIS
     # -----------------------------------------------------
-    st.markdown("### 7(empty) Offer Acceptance Analysis")
+    st.markdown("### 7   Offer Acceptance Analysis")
 
     offer_dist = df["Status"].value_counts().reset_index()
     offer_dist.columns = ["Status","Count"]
@@ -1472,7 +1472,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 8. INTERNSHIP TO PPO CONVERSION
     # -----------------------------------------------------
-    st.markdown("### 8(empty) Internship to PPO Conversion")
+    st.markdown("### 8   Internship to PPO Conversion")
 
     if "JobType" in df.columns:
         ppo = df["JobType"].value_counts().reset_index()
@@ -1490,7 +1490,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 9. COMPANY RETENTION ANALYSIS
     # -----------------------------------------------------
-    st.markdown("### 9(empty) Company Retention")
+    st.markdown("### 9   Company Retention")
 
     retention = df.groupby("Company")["Year"].nunique().reset_index()
     retention.columns = ["Company","Years Visited"]
@@ -1507,7 +1507,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 10. SKILL DEMAND ANALYSIS
     # -----------------------------------------------------
-    st.markdown("### (empty) Skill Demand Analysis")
+    st.markdown("###    Skill Demand Analysis")
 
     skills = df["Skills"].str.split(",",expand=True).stack().value_counts().reset_index()
     skills.columns = ["Skill","Count"]
@@ -1524,7 +1524,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 11. INTERVIEW MODE ANALYSIS
     # -----------------------------------------------------
-    st.markdown("### 1(empty)1(empty) Interview Mode Analysis")
+    st.markdown("### 1  1   Interview Mode Analysis")
 
     if "InterviewMode" in df.columns:
 
@@ -1544,7 +1544,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 12. HIRING SPEED ANALYSIS
     # -----------------------------------------------------
-    st.markdown("### 1(empty)2(empty) Hiring Speed Analysis")
+    st.markdown("### 1  2   Hiring Speed Analysis")
 
     if "Placed_Date" in df.columns:
 
@@ -1561,7 +1561,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 13. COMPANY QUALITY SCORE
     # -----------------------------------------------------
-    st.markdown("### 1(empty)3(empty) Company Quality Score")
+    st.markdown("### 1  3   Company Quality Score")
 
     quality = package_stats.merge(company_perf,on="Company")
 
@@ -1583,7 +1583,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 14. PLACEMENT COVERAGE
     # -----------------------------------------------------
-    st.markdown("### 1(empty)4(empty) Placement Coverage")
+    st.markdown("### 1  4   Placement Coverage")
 
     coverage = placed_df["Company"].value_counts().reset_index()
     coverage.columns = ["Company","Students"]
@@ -1600,7 +1600,7 @@ with tabs[3]:
     # -----------------------------------------------------
     # 15. TOP PAYING COMPANIES
     # -----------------------------------------------------
-    st.markdown("### 1(empty)5(empty) Top Paying Companies")
+    st.markdown("### 1  5   Top Paying Companies")
 
     top_pay = placed_df.groupby("Company")["Package"].max().reset_index()
 
@@ -1622,9 +1622,9 @@ with tabs[4]:
     # COMPANY DRIVE REGISTRATION
     # ===============================
 
-    with st.expander("(empty) Register New Company Drive"):
+    with st.expander("   Register New Company Drive"):
 
-        st.subheader("1(empty) Basic Company Information")
+        st.subheader("1   Basic Company Information")
 
         col1, col2 = st.columns(2)
 
@@ -1649,7 +1649,7 @@ with tabs[4]:
         # JOB ROLE DETAILS
         # ===============================
 
-        st.subheader("2(empty) Job Role Details")
+        st.subheader("2   Job Role Details")
 
         col3, col4 = st.columns(2)
 
@@ -1672,7 +1672,7 @@ with tabs[4]:
         # SALARY & BENEFITS
         # ===============================
 
-        st.subheader("3(empty) Salary & Benefits")
+        st.subheader("3   Salary & Benefits")
 
         col5, col6 = st.columns(2)
 
@@ -1692,7 +1692,7 @@ with tabs[4]:
         # ELIGIBILITY
         # ===============================
 
-        st.subheader("4(empty) Eligibility Criteria")
+        st.subheader("4   Eligibility Criteria")
 
         eligible_branches = st.multiselect(
             "Eligible Branches",
@@ -1709,7 +1709,7 @@ with tabs[4]:
         # SELECTION PROCESS
         # ===============================
 
-        st.subheader("5(empty) Selection Process")
+        st.subheader("5   Selection Process")
 
         rounds = st.multiselect(
             "Recruitment Rounds",
@@ -1732,7 +1732,7 @@ with tabs[4]:
         # RECRUITMENT SCHEDULE
         # ===============================
 
-        st.subheader("6(empty) Recruitment Schedule")
+        st.subheader("6   Recruitment Schedule")
 
         ppt_date = st.date_input("Pre Placement Talk Date")
         test_date = st.date_input("Online Test Date")
@@ -1745,7 +1745,7 @@ with tabs[4]:
         # DOCUMENTS REQUIRED
         # ===============================
 
-        st.subheader("7(empty) Documents Required")
+        st.subheader("7   Documents Required")
 
         documents = st.multiselect(
             "Documents",
@@ -1758,7 +1758,7 @@ with tabs[4]:
         # INTERNAL PLACEMENT TRACKING
         # ===============================
 
-        st.subheader("8(empty) Placement Cell Internal Tracking")
+        st.subheader("8   Placement Cell Internal Tracking")
 
         company_id = st.text_input("Company ID")
         drive_id = st.text_input("Drive ID")
@@ -1790,6 +1790,6 @@ with tabs[4]:
                 "Selected Students": selected
             }
 
-            st.success("(empty) Company Drive Registered Successfully")
+            st.success("   Company Drive Registered Successfully")
             st.json(company_data)
 
