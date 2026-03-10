@@ -103,7 +103,8 @@ SECRET_KEY = "PLACEMENT_INTELLIGENCE_APEX_ENTERPRISE_SECURITY_2026"
 OFFICIAL_USERS = {
     "placement_officer": {"password": "official123", "role": "Official"},
     "coordinator": {"password": "official123", "role": "Official"},
-    "naash": {"password": "naash123", "role": "Official"}
+    "naash": {"password": "naash123", "role": "Official"},
+    "vellai_pandhu": {"password": "kusu123", "role": "Official"}
 }
 
 # ================================
@@ -271,7 +272,7 @@ company = user.get("company", "")
 # LOAD CSV DATA
 # =======================
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_data():
     df = pd.read_csv("PLACEMENT_INTELLIGENCE_MASTER_FINAL_LARGE.csv")
     df["Placed_Date"] = pd.to_datetime(df["Placed_Date"], errors="coerce")
