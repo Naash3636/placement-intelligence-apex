@@ -279,193 +279,99 @@ def load_data():
     return df_master, academics, placements, companies, drives
 
 df_master, academics, placements, companies, drives = load_data()
-
-
 # ==============================
-# CREATE MASTER DATASET
+# CREATE MASTER ANALYTICS DATASET
 # ==============================
-
-df = df_master.merge(
-    placements,
-    on=["StudentID","Year"],
-    how="left"
-)
-df["Status"] = df["Status"].fillna("Rejected")
-df["Package"] = df["Package"].fillna(0)
-df["Company"] = df["Company"].fillna("Not Attempted")
- 
-# ======================================
-# CREATE MAIN ANALYTICS DATASET
-# ======================================
-
-# Merge datasets
-df = df_master.merge(placements, on=["StudentID","Year"], how="left")
-df = df.merge(academics, on=["StudentID","Year"], how="left")
 
 # Clean column names
-df.columns = df.columns.str.strip()
+df_master.columns = df_master.columns.str.strip()
+academics.columns = academics.columns.str.strip()
+placements.columns = placements.columns.str.strip()
 
-# Ensure important columns exist
-required_cols = ["StudentID","Name","Branch","Company","Package","Status","Year","Skills"]
+# Merge placements
+df = df_master.merge(
+    placements,
+    on="StudentID",
+    how="left"
+)
 
-for col in required_cols:
+# Merge academic history
+df = df.merge(
+    academics,
+    on="StudentID",
+    how="left"
+)
+
+# ==============================
+# COLUMN STABILIZER
+# ==============================
+
+required_cols = {
+    "StudentID": "Unknown",
+    "Name": "Unknown",
+    "Branch": "Unknown",
+    "Company": "Not Applied",
+    "Status": "Not Placed",
+    "Package": 0,
+    "Year": 2026,
+    "Skills": "Python,SQL"
+}
+
+for col, default in required_cols.items():
     if col not in df.columns:
-        df[col] = "Unknown"
+        df[col] = default
 
-# Convert date
+# Convert date column if present
 if "Placed_Date" in df.columns:
     df["Placed_Date"] = pd.to_datetime(df["Placed_Date"], errors="coerce")
 
-# Ensure academic columns exist
+# ==============================
+# AUTO CREATE SGPA COLUMNS
+# ==============================
+
 for i in range(1,9):
 
-    if f"SGPA_Sem{i}" not in df.columns:
-        df[f"SGPA_Sem{i}"] = np.random.uniform(6.5,9.5,len(df)).round(2)
+    col = f"SGPA_Sem{i}"
 
-    if f"Attendance_Sem{i}" not in df.columns:
-        df[f"Attendance_Sem{i}"] = np.random.randint(70,95,len(df))
+    if col not in df.columns:
+        df[col] = np.random.uniform(6.5,9.5,len(df)).round(2)
 
-    if f"Backlogs_Sem{i}" not in df.columns:
-        df[f"Backlogs_Sem{i}"] = np.random.randint(0,2,len(df))
+# ==============================
+# AUTO CREATE BACKLOGS
+# ==============================
 
-def generate_narrative_report(df):
+for i in range(1,9):
 
-    placed = df[df["Status"]=="Placed"].copy()
+    col = f"Backlogs_Sem{i}"
 
-    report = {}
+    if col not in df.columns:
+        df[col] = np.random.randint(0,2,len(df))
 
-    # Hiring performance
-    company_hires = placed["Company"].value_counts()
+# ==============================
+# AUTO CREATE ATTENDANCE
+# ==============================
 
-    if not company_hires.empty:
-        top_company = company_hires.idxmax()
-        report["Hiring Performance"] = f"{top_company} hired the most students."
+for i in range(1,9):
 
-    # Package analysis
-    if "Package" in placed.columns:
-        avg_package = placed["Package"].mean()
-        report["Package Analysis"] = f"Average package across companies is {round(avg_package,2)} LPA."
+    col = f"Attendance_Sem{i}"
 
-    # Branch analysis
-    branch_perf = placed["Branch"].value_counts()
+    if col not in df.columns:
+        df[col] = np.random.uniform(70,95,len(df)).round(1)
 
-    if not branch_perf.empty:
-        top_branch = branch_perf.idxmax()
-        report["Branch Performance"] = f"{top_branch} has the highest placements."
+# ==============================
+# AUTO CREATE SUBJECT MARKS
+# ==============================
 
-    # Placement rate
-    total = df["StudentID"].nunique()
-    placed_students = placed["StudentID"].nunique()
+subjects = ["Maths","DSA","OS","DBMS","AI"]
 
-    rate = (placed_students / total) * 100 if total > 0 else 0
+for s in subjects:
+    for sem in range(1,9):
 
-    report["Placement Rate"] = f"Overall placement rate is {round(rate,2)}%."
+        col = f"{s}_Sem{sem}"
 
-    return report
+        if col not in df.columns:
+            df[col] = np.random.randint(55,100,len(df))
 
-# =========================================
-# SIMPLE DATASET AI ENGINE
-# =========================================
-
-def dataset_ai_engine(question, df):
-
-    q = question.lower()
-
-    if "placement rate" in q:
-        total = df["StudentID"].nunique()
-        placed = df[df["Status"]=="Placed"]["StudentID"].nunique()
-
-        rate = (placed/total)*100 if total>0 else 0
-
-        return f"Placement rate is {round(rate,2)}%."
-
-    if "highest package" in q:
-
-        row = df.loc[df["Package"].idxmax()]
-
-        return f"{row['Name']} got the highest package of {row['Package']} LPA at {row['Company']}."
-
-    if "top company" in q:
-
-        comp = df[df["Status"]=="Placed"]["Company"].value_counts().idxmax()
-
-        return f"{comp} hired the most students."
-
-    return "Try asking about placement rate, highest package, or top company."
-
-# =========================================
-# GRAPH AI
-# =========================================
-
-def universal_graph_ai(question, df):
-
-    q = question.lower()
-
-    if "package" in q and "company" in q:
-
-        fig = px.box(
-            df,
-            x="Company",
-            y="Package",
-            title="Package Distribution by Company"
-        )
-
-        return fig
-
-    if "branch" in q:
-
-        counts = df["Branch"].value_counts().reset_index()
-
-        fig = px.bar(
-            counts,
-            x="index",
-            y="Branch",
-            title="Students by Branch"
-        )
-
-        return fig
-
-    return None
-
-# ================================
-# AI PLACEMENT PREDICTION MODEL
-# ================================
-
-@st.cache_resource
-def train_placement_model(df):
-
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.model_selection import train_test_split
-
-    model_df = df.copy()
-
-    model_df["Placed"] = model_df["Status"].apply(lambda x: 1 if x=="Placed" else 0)
-
-    model_df["Skill_Count"] = model_df["Skills"].apply(lambda x: len(str(x).split(",")))
-
-    features = [
-        "CGPA",
-        "Internships",
-        "Hackathons",
-        "Resume_Score",
-        "GitHub_Score",
-        "LeetCode_Rating",
-        "Skill_Count"
-    ]
-
-    X = model_df[features]
-    y = model_df["Placed"]
-
-    X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
-
-    model = RandomForestClassifier(n_estimators=150)
-
-    model.fit(X_train,y_train)
-
-    return model
-
-
-placement_model = train_placement_model(df)
 # =======================
 # HEADER DESIGN
 # =======================
@@ -721,39 +627,85 @@ with tabs[1]:
 # STUDENT DASHBOARD
 # =======================
 
-with tabs[2]:
+# =======================
+# STUDENT DASHBOARD
+# =======================
 
+# =======================
+# STUDENT DASHBOARD
+# =======================
+
+with tabs[2]:
     st.markdown("## Student Profile Portal")
+
+    # Ensure "Name" column exists for the search filter
+    if "Name" not in df.columns:
+        name_cols = [c for c in df.columns if "name" in c.lower()]
+        if name_cols:
+            df.rename(columns={name_cols[0]: "Name"}, inplace=True)
 
     search = st.text_input("Search Student (ID or Name)", key="student_search_box")
 
     filtered_df = df.copy()
+    if search:
+        filtered_df = filtered_df[
+            filtered_df["StudentID"].astype(str).str.contains(search, na=False) |
+            filtered_df["Name"].str.contains(search, case=False, na=False)
+        ]
 
     student_list = filtered_df["StudentID"].unique().tolist()
 
     selected_student = st.selectbox(
         "Select Student ID",
         ["Select Student"] + student_list,
-        key="student_select_1"
+        key="student_select_main"
     )
 
     if selected_student == "Select Student":
         st.info("Please select a student")
 
     else:
-
         stu_data = df[df["StudentID"].astype(str) == str(selected_student)]
 
         if stu_data.empty:
             st.warning("No data available")
 
         else:
-
             profile = stu_data.iloc[0]
 
-            # ===============================
-            # STUDENT TABS
-            # ===============================
+            # ==========================================================
+            # AI GRAPH INTERPRETER
+            # ==========================================================
+
+            def interpret_graph(title, data):
+                if title == "SGPA":
+                    avg = data["SGPA"].mean()
+                    trend = "improving" if data["SGPA"].iloc[-1] > data["SGPA"].iloc[0] else "declining"
+                    return f"The student's academic performance is {trend} with an average SGPA of {round(avg,2)}."
+
+                if title == "Backlogs":
+                    total = data["Backlogs"].sum()
+                    return f"The student has {total} total backlogs across semesters."
+
+                if title == "Attendance":
+                    avg = data["Attendance"].mean()
+                    return f"Average attendance is {round(avg,1)}%, which indicates {'good' if avg>75 else 'poor'} consistency."
+
+                if title == "Subjects":
+                    top = data.sort_values("Marks",ascending=False).iloc[0]["Subject"]
+                    return f"The strongest subject appears to be {top}."
+
+                if title == "Placement":
+                    offers = len(data[data["Status"]=="Placed"])
+                    attempts = len(data)
+                    rate = round((offers/attempts)*100,2)
+                    return f"The student has a placement success rate of {rate}%."
+
+                return "No interpretation available."
+
+            # ==========================================================
+            # CLUBBED STUDENT SECTIONS
+            # ==========================================================
 
             student_tabs = st.tabs([
                 "Profile",
@@ -762,674 +714,136 @@ with tabs[2]:
                 "Placements"
             ])
 
-            # =====================================================
+            # ==========================================================
             # PROFILE TAB
-            # =====================================================
+            # ==========================================================
 
             with student_tabs[0]:
+                st.subheader("Student Profile")
+                col1,col2 = st.columns([1,3])
 
-                st.markdown("## Student Intelligence Dashboard")
-
-                col1, col2 = st.columns([1,3,])
-
-                # PHOTO
                 with col1:
                     st.image(
                         "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-                        width=170
+                        width=130
                     )
 
-                # STUDENT INFO
                 with col2:
-
-                    st.markdown("### Student Information")
-
-                    info1, info2 = st.columns(2)
-
-                    with info1:
-                        st.write("Name:", profile["Name"])
-                        st.write("Student ID:", profile["StudentID"])
-                        st.write("Branch:", profile["Branch"])
-                        st.write("Gender:", profile["Gender"])
-
-                    with info2:
-                        st.write("Email:", profile["Email"])
-                        st.write("Phone:", profile["Phone"])
-                        st.write("Father:", profile["Father"])
-                        st.write("Mother:", profile["Mother"])
-
-                
-
-                st.markdown("---")
-
-                # KPI CARDS
-                k1,k2,k3,k4,k5,k6 = st.columns(6)
-
-                k1.metric("CGPA", profile["CGPA"])
-                k2.metric("Internships", profile["Internships"])
-                k3.metric("Hackathons", profile["Hackathons"])
-                k4.metric("Research Papers", profile["Papers"])
-                k5.metric("Clubs", profile["Clubs"])
-                k6.metric("LeetCode", profile["LeetCode_Rating"])
-
-                st.markdown("---")
-                st.markdown("### AI Placement Predictor")
-
-                skill_count = len(profile["Skills"].split(","))
-
-                input_data = pd.DataFrame({
-
-                    "CGPA":[profile["CGPA"]],
-                    "Internships":[profile["Internships"]],
-                    "Hackathons":[profile["Hackathons"]],
-                    "Resume_Score":[profile["Resume_Score"]],
-                    "GitHub_Score":[profile["GitHub_Score"]],
-                    "LeetCode_Rating":[profile["LeetCode_Rating"]],
-                    "Skill_Count":[skill_count]
-
-                })
-
-                prediction = placement_model.predict(input_data)[0]
-                prob = placement_model.predict_proba(input_data)[0][1]
-
-                col1,col2 = st.columns(2)
-
-                with col1:
-
-                    if prediction == 1:
-                        st.success("High Placement Probability")
-                    else:
-                        st.warning("Placement Risk Detected")
-
-                with col2:
-
-                    st.metric("Placement Probability", f"{round(prob*100,2)}%")
-                
-                if prob > 0.75:
-
-                    st.info(
-                    "Analysis: The student has strong academic and skill indicators. "
-                    "High probability of securing placement in upcoming drives."
-                    )
-
-                elif prob > 0.5:
-
-                    st.info(
-                    "Analysis: The student has moderate placement potential but "
-                    "improvement in skills or internships can increase chances."
-                    )
-
-                else:
-
-                    st.error(
-                    "AI Analysis: The student currently has low placement probability. "
-                    "Recommended to improve coding skills, internships and projects."
-                    )
-                st.markdown("### AI Student Intelligence Analysis")
-
-                colA,colB,colC = st.columns(3)
-
-                # =============================
-                # PLACEMENT READINESS SCORE
-                # =============================
-
-                cgpa_score = profile["CGPA"] * 10
-                skill_score = len(profile["Skills"].split(",")) * 8
-                intern_score = profile["Internships"] * 15
-                coding_score = profile["LeetCode_Rating"] / 20
-
-                placement_score = cgpa_score + skill_score + intern_score + coding_score
-
-                with colA:
-
-                    st.metric("Placement Readiness Score", round(placement_score,2))
-
-                    if placement_score > 220:
-                        st.success("Highly Placement Ready")
-                    elif placement_score > 180:
-                        st.info("Moderately Ready")
-                    else:
-                        st.warning("Needs Preparation")
-
-
-                # =============================
-                # INTERVIEW READINESS INDEX
-                # =============================
-
-                interview_index = (
-                    profile["CGPA"]*5 +
-                    profile["Hackathons"]*10 +
-                    profile["Internships"]*15 +
-                    profile["LeetCode_Rating"]/50
-                )
-
-                with colB:
-
-                    st.metric("Interview Readiness Index", round(interview_index,2))
-
-                    if interview_index > 80:
-                        st.success("Strong Interview Readiness")
-                    elif interview_index > 60:
-                        st.info("Average Interview Preparation")
-                    else:
-                        st.warning("Needs Interview Practice")
-
-
-                # =============================
-                # RESUME STRENGTH
-                # =============================
-
-                resume_strength = (
-                    profile["Resume_Score"] +
-                    profile["GitHub_Score"]/2 +
-                    profile["Papers"]*10 +
-                    profile["Internships"]*15
-                )
-
-                with colC:
-
-                    st.metric("Resume Strength Score", round(resume_strength,2))
-
-                    if resume_strength > 120:
-                        st.success("Strong Resume")
-                    elif resume_strength > 80:
-                        st.info("Average Resume")
-                    else:
-                        st.warning("Resume Needs Improvement")
-
-                st.markdown("---")
-
-                # =====================================
-                # CAREER DOMAIN PREDICTION
-                # =====================================
-
-                st.subheader("AI Career Domain Prediction")
-
-                skills = profile["Skills"].split(",")
-
-                domain_scores = {
-
-                    "Data Science": sum(s in ["Python","Machine Learning","Deep Learning","SQL","TensorFlow"] for s in skills),
-
-                    "Software Development": sum(s in ["Java","C++","React","NodeJS","SQL"] for s in skills),
-
-                    "Cloud Engineering": sum(s in ["AWS","Docker","Kubernetes","DevOps","Linux"] for s in skills),
-
-                    "Cybersecurity": sum(s in ["Cybersecurity","Linux","Networking"] for s in skills),
-
-                }
-
-                best_domain = max(domain_scores, key=domain_scores.get)
-
-                col1,col2 = st.columns(2)
-
-                with col1:
-                    st.metric("Best Career Domain", best_domain)
-
-                with col2:
-                    st.write("Domain Score Distribution")
-
-                    domain_df = pd.DataFrame({
-                        "Domain":domain_scores.keys(),
-                        "Score":domain_scores.values()
-                    })
-
-                    fig = px.bar(domain_df,x="Domain",y="Score")
-
-                    st.plotly_chart(fig,use_container_width=True)
-
-                st.markdown("---")
-
-                # =====================================
-                # SKILL MARKET DEMAND MATCH
-                # =====================================
-
-                st.subheader("Market Skill Demand Match")
-
-                market_skills = [
-                    "Python","Machine Learning","SQL",
-                    "Cloud Computing","DevOps",
-                    "System Design","Docker",
-                    "Kubernetes","AI","Data Engineering"
-                ]
-
-                student_skills = profile["Skills"].split(",")
-
-                match_score = len(set(student_skills).intersection(market_skills)) / len(market_skills) * 100
-
-                col1,col2 = st.columns(2)
-
-                with col1:
-                    st.metric("Market Skill Match", f"{round(match_score,2)}%")
-
-                with col2:
-                    missing = list(set(market_skills) - set(student_skills))
-
-                    st.write("Recommended Skills")
-
-                    for m in missing[:5]:
-                        st.warning(m)
-
-                st.markdown("---")
-
-                # =====================================
-                # STUDENT RISK DETECTION
-                # =====================================
-
-                st.subheader("Academic Risk Detection")
-
-                backlogs = sum([
-                    profile["Backlogs_Sem1"],
-                    profile["Backlogs_Sem2"],
-                    profile["Backlogs_Sem3"],
-                    profile["Backlogs_Sem4"],
-                    profile["Backlogs_Sem5"],
-                    profile["Backlogs_Sem6"],
-                    profile["Backlogs_Sem7"],
-                    profile["Backlogs_Sem8"]
-                ])
-
-                risk_score = (backlogs*15) + (8-profile["CGPA"])*10
-
-                if risk_score < 20:
-                    st.success("Low Academic Risk")
-                elif risk_score < 50:
-                    st.info("Moderate Academic Risk")
-                else:
-                    st.error("High Academic Risk – Needs Intervention")
-
-                # ======================================
-                # SGPA + SKILL RADAR
-                # ======================================
-
-                colA, colB = st.columns(2)
-
-                # SGPA GRAPH
-                with colA:
-
-                    sgpa_df = pd.DataFrame({
-                        "Semester":[1,2,3,4,5,6,7,8],
-                        "SGPA":[
-                            profile["SGPA_Sem1"],
-                            profile["SGPA_Sem2"],
-                            profile["SGPA_Sem3"],
-                            profile["SGPA_Sem4"],
-                            profile["SGPA_Sem5"],
-                            profile["SGPA_Sem6"],
-                            profile["SGPA_Sem7"],
-                            profile["SGPA_Sem8"]
-                        ]
-                    })
-
-                    fig = px.line(sgpa_df, x="Semester", y="SGPA", markers=True)
-
-                    st.plotly_chart(fig, use_container_width=True)
-
-                # SKILL RADAR
-                with colB:
-
-                    skills = profile["Skills"].split(",")
-
-                    radar_df = pd.DataFrame({
-                        "Skill": skills,
-                        "Score": np.random.randint(70,95,len(skills))
-                    })
-
-                    fig = px.line_polar(
-                        radar_df,
-                        r="Score",
-                        theta="Skill",
-                        line_close=True
-                    )
-
-                    st.plotly_chart(fig, use_container_width=True)
-
-                st.markdown("---")
-
-                # SKILL GAP
-                st.subheader("Skill Gap Analysis")
-
-                demanded_skills = [
-                    "Python","SQL","Machine Learning","Cloud Computing",
-                    "Data Structures","System Design","DevOps","AI"
-                ]
-
-                student_skills = profile["Skills"].split(",")
-
-                missing = list(set(demanded_skills) - set(student_skills))
-
-                col1,col2 = st.columns(2)
-
-                with col1:
-                    st.markdown("### Student Skills")
-                    for s in student_skills:
-                        st.success(s)
-
-                with col2:
-                    st.markdown("### Recommended Skills")
-                    for s in missing[:5]:
-                        st.warning(s)
-
-                st.markdown("---")
-
-                # ADDRESS
-                st.subheader("Address")
-                st.write(profile["Address"])
-
-            # =====================================================
+                    for col in df.columns:
+                        if col not in [
+                            "SGPA_Sem1","SGPA_Sem2","SGPA_Sem3","SGPA_Sem4",
+                            "SGPA_Sem5","SGPA_Sem6","SGPA_Sem7","SGPA_Sem8",
+                            "Maths_Sem1","Maths_Sem2","Maths_Sem3","Maths_Sem4",
+                            "Maths_Sem5","Maths_Sem6","Maths_Sem7","Maths_Sem8",
+                            "DSA_Sem1","DSA_Sem2","DSA_Sem3","DSA_Sem4",
+                            "DSA_Sem5","DSA_Sem6","DSA_Sem7","DSA_Sem8",
+                            "OS_Sem1","OS_Sem2","OS_Sem3","OS_Sem4",
+                            "OS_Sem5","OS_Sem6","OS_Sem7","OS_Sem8",
+                            "DBMS_Sem1","DBMS_Sem2","DBMS_Sem3","DBMS_Sem4",
+                            "DBMS_Sem5","DBMS_Sem6","DBMS_Sem7","DBMS_Sem8",
+                            "AI_Sem1","AI_Sem2","AI_Sem3","AI_Sem4",
+                            "AI_Sem5","AI_Sem6","AI_Sem7","AI_Sem8",
+                            "Backlogs_Sem1","Backlogs_Sem2","Backlogs_Sem3","Backlogs_Sem4",
+                            "Backlogs_Sem5","Backlogs_Sem6","Backlogs_Sem7","Backlogs_Sem8",
+                            "Attendance_Sem1","Attendance_Sem2","Attendance_Sem3","Attendance_Sem4",
+                            "Attendance_Sem5","Attendance_Sem6","Attendance_Sem7","Attendance_Sem8"
+                        ]:
+                            st.write(f"**{col}** :", profile.get(col,""))
+
+            # ==========================================================
             # ACADEMICS TAB
-            # =====================================================
+            # ==========================================================
 
             with student_tabs[1]:
+                st.subheader("Academic Analytics")
 
-                st.markdown("## Academic Intelligence Dashboard")
-
-                # =============================
-                # AI INTERPRETATION ENGINE
-                # =============================
-
-                def academic_ai(graph, data):
-
-                    if graph == "sgpa":
-                        avg = data["SGPA"].mean()
-                        trend = "improving" if data["SGPA"].iloc[-1] > data["SGPA"].iloc[0] else "declining"
-
-                        if avg >= 8.5:
-                            level = "excellent"
-                        elif avg >= 7:
-                            level = "moderate"
-                        else:
-                            level = "weak"
-
-                        return f"AI Insight: The SGPA trend is {trend}. Average SGPA is {round(avg,2)}, indicating {level} academic performance."
-
-                    if graph == "attendance":
-                        avg = data["Attendance"].mean()
-
-                        if avg > 85:
-                            return "AI Insight: Attendance levels are consistently strong showing high academic discipline."
-                        elif avg > 75:
-                            return "AI Insight: Attendance levels are acceptable but can be improved."
-                        else:
-                            return "AI Insight: Low attendance may impact academic performance and placement readiness."
-
-                    if graph == "backlogs":
-                        total = data["Backlogs"].sum()
-
-                        if total == 0:
-                            return "AI Insight: Student maintains a clean academic record with no backlogs."
-                        else:
-                            return f"AI Insight: Student has accumulated {total} backlogs which may affect eligibility for certain companies."
-
-                    if graph == "subjects":
-                        top = data.sort_values("Marks",ascending=False).iloc[0]["Subject"]
-                        weak = data.sort_values("Marks").iloc[0]["Subject"]
-
-                        return f"AI Insight: Strongest subject is {top}. Improvement recommended in {weak}."
-
-                    return "AI analysis completed."
-
-
-                # =============================
-                # SGPA DATA
-                # =============================
-
-                sgpa_df = pd.DataFrame({
+                # SGPA GRAPH
+                sem_df = pd.DataFrame({
                     "Semester":[1,2,3,4,5,6,7,8],
-                    "SGPA":[
-                        profile["SGPA_Sem1"],
-                        profile["SGPA_Sem2"],
-                        profile["SGPA_Sem3"],
-                        profile["SGPA_Sem4"],
-                        profile["SGPA_Sem5"],
-                        profile["SGPA_Sem6"],
-                        profile["SGPA_Sem7"],
-                        profile["SGPA_Sem8"]
-                    ]
+                    "SGPA":[profile[f"SGPA_Sem{i}"] for i in range(1,9)]
                 })
+                fig = px.line(sem_df,x="Semester",y="SGPA",markers=True)
+                st.plotly_chart(fig,use_container_width=True)
+                st.info(interpret_graph("SGPA",sem_df))
 
+                # SUBJECT GRAPH
+                sem = st.selectbox("Select Semester",[1,2,3,4,5,6,7,8])
+                subjects = [f"Maths_Sem{sem}", f"DSA_Sem{sem}", f"OS_Sem{sem}", f"DBMS_Sem{sem}", f"AI_Sem{sem}"]
+                subject_df = pd.DataFrame({
+                    "Subject":["Maths","DSA","OS","DBMS","AI"],
+                    "Marks":[profile[col] for col in subjects]
+                })
+                fig_sub = px.bar(subject_df,x="Subject",y="Marks")
+                st.plotly_chart(fig_sub,use_container_width=True)
+                st.info(interpret_graph("Subjects",subject_df))
 
-                # =============================
-                # ATTENDANCE DATA
-                # =============================
-
-                att_df = pd.DataFrame({
+                # BACKLOG GRAPH
+                backlog_df = pd.DataFrame({
                     "Semester":[1,2,3,4,5,6,7,8],
-                    "Attendance":[
-                        profile["Attendance_Sem1"],
-                        profile["Attendance_Sem2"],
-                        profile["Attendance_Sem3"],
-                        profile["Attendance_Sem4"],
-                        profile["Attendance_Sem5"],
-                        profile["Attendance_Sem6"],
-                        profile["Attendance_Sem7"],
-                        profile["Attendance_Sem8"]
-                    ]
+                    "Backlogs":[profile[f"Backlogs_Sem{i}"] for i in range(1,9)]
                 })
+                fig_back = px.bar(backlog_df,x="Semester",y="Backlogs")
+                st.plotly_chart(fig_back,use_container_width=True)
+                st.info(interpret_graph("Backlogs",backlog_df))
 
-
-                # =============================
-                # BACKLOG DATA
-                # =============================
-
-                back_df = pd.DataFrame({
+                # ATTENDANCE
+                attendance_df = pd.DataFrame({
                     "Semester":[1,2,3,4,5,6,7,8],
-                    "Backlogs":[
-                        profile["Backlogs_Sem1"],
-                        profile["Backlogs_Sem2"],
-                        profile["Backlogs_Sem3"],
-                        profile["Backlogs_Sem4"],
-                        profile["Backlogs_Sem5"],
-                        profile["Backlogs_Sem6"],
-                        profile["Backlogs_Sem7"],
-                        profile["Backlogs_Sem8"]
-                    ]
+                    "Attendance":[profile[f"Attendance_Sem{i}"] for i in range(1,9)]
                 })
+                fig_att = px.bar(attendance_df,x="Semester",y="Attendance")
+                st.plotly_chart(fig_att,use_container_width=True)
+                st.info(interpret_graph("Attendance",attendance_df))
 
-
-                # =============================
-                # ROW 1 — SGPA & ATTENDANCE
-                # =============================
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-
-                    st.subheader("SGPA Trend")
-
-                    fig = px.line(
-                        sgpa_df,
-                        x="Semester",
-                        y="SGPA",
-                        markers=True,
-                        template="plotly_dark"
-                    )
-
-                    st.plotly_chart(fig,use_container_width=True,key=f"sgpa_{selected_student}")
-
-                    st.info(academic_ai("sgpa", sgpa_df))
-
-
-                with col2:
-
-                    st.subheader("Attendance Trend")
-
-                    fig = px.bar(
-                        att_df,
-                        x="Semester",
-                        y="Attendance",
-                        template="plotly_dark"
-                    )
-
-                    st.plotly_chart(fig,use_container_width=True,key=f"attendance_{selected_student}")
-
-                    st.info(academic_ai("attendance", att_df))
-
-
-                # =============================
-                # ROW 2 — BACKLOG + SUBJECT
-                # =============================
-
-                col3, col4 = st.columns(2)
-
-                with col3:
-
-                    st.subheader("Backlog Trend")
-
-                    fig = px.bar(
-                        back_df,
-                        x="Semester",
-                        y="Backlogs",
-                        template="plotly_dark",
-                        color="Backlogs"
-                    )
-
-                    st.plotly_chart(fig,use_container_width=True,key=f"backlog_{selected_student}")
-
-                    st.info(academic_ai("backlogs", back_df))
-
-
-                with col4:
-
-                    st.subheader("Subject Performance")
-
-                    sem = st.selectbox(
-                        "Select Semester",
-                        [1,2,3,4,5,6,7,8],
-                        key=f"semester_select_{selected_student}"
-                    )
-
-                    subject_cols = [
-                        c for c in df.columns
-                        if f"_Sem{sem}" in c
-                        and "SGPA" not in c
-                        and "Attendance" not in c
-                        and "Backlogs" not in c
-                    ]
-
-                    subjects = []
-                    marks = []
-
-                    for col in subject_cols:
-                        subjects.append(col.replace(f"_Sem{sem}",""))
-                        marks.append(profile.get(col,0))
-
-                    subject_df = pd.DataFrame({
-                        "Subject":subjects,
-                        "Marks":marks
-                    })
-
-                    fig = px.bar(
-                        subject_df,
-                        x="Subject",
-                        y="Marks",
-                        template="plotly_dark"
-                    )
-
-                    st.plotly_chart(fig,use_container_width=True,key=f"subjects_{selected_student}")
-
-                    st.info(academic_ai("subjects", subject_df))
-
-
-                # =============================
-                # SUBJECT RADAR
-                # =============================
-
-                st.subheader("Subject Strength Radar")
-
-                fig = px.line_polar(
-                    subject_df,
-                    r="Marks",
-                    theta="Subject",
-                    line_close=True
-                )
-
-                st.plotly_chart(fig,use_container_width=True,key=f"radar_{selected_student}")
-
-
-                # =============================
-                # SGPA DISTRIBUTION
-                # =============================
-
-                st.subheader("SGPA Distribution")
-
-                fig = px.histogram(
-                    sgpa_df,
-                    x="SGPA",
-                    nbins=8
-                )
-
-                st.plotly_chart(fig,use_container_width=True,key=f"sgpa_hist_{selected_student}")
-
-
-                # =============================
-                # ACADEMIC PERFORMANCE INDEX
-                # =============================
-
-                st.subheader("Academic Performance Index")
-
-                academic_score = (
-                    np.mean(sgpa_df["SGPA"])*10 +
-                    np.mean(att_df["Attendance"])*0.3 -
-                    np.sum(back_df["Backlogs"])*5
-                )
-
-                if academic_score > 120:
-                    level = "Excellent"
-                elif academic_score > 100:
-                    level = "Good"
-                else:
-                    level = "Needs Improvement"
-
-                c1,c2 = st.columns(2)
-
-                c1.metric("Academic Score", round(academic_score,2))
-                c2.metric("Academic Level", level)
-            # =====================================================
-            # SKILLS TAB
-            # =====================================================
+            # ==========================================================
+            # SKILLS & ACTIVITIES
+            # ==========================================================
 
             with student_tabs[2]:
-
                 st.subheader("Skills & Achievements")
-
                 skills = profile["Skills"].split(",")
-
                 skill_df = pd.DataFrame({
                     "Skill":skills,
                     "Level":[80+5*i for i in range(len(skills))]
                 })
+                fig_skill = px.bar(skill_df,x="Skill",y="Level")
+                st.plotly_chart(fig_skill,use_container_width=True)
 
-                fig = px.bar(skill_df,x="Skill",y="Level")
+                st.write("### Achievements")
+                c1,c2,c3 = st.columns(3)
+                c1.metric("Hackathons",profile["Hackathons"])
+                c2.metric("Papers",profile["Papers"])
+                c3.metric("Conferences",profile["Conferences"])
 
-                st.plotly_chart(fig,use_container_width=True)
+                st.write("### Activities")
+                a1,a2 = st.columns(2)
+                a1.metric("Sports",profile["Sports"])
+                a2.metric("Clubs",profile["Clubs"])
 
-            # =====================================================
-            # PLACEMENTS TAB
-            # =====================================================
+            # ==========================================================
+            # PLACEMENTS
+            # ==========================================================
 
             with student_tabs[3]:
-
                 total_attempts = len(stu_data)
                 placed = len(stu_data[stu_data["Status"]=="Placed"])
                 rejected = len(stu_data[stu_data["Status"]=="Rejected"])
-
-                success_ratio = round((placed/total_attempts)*100,2)
+                success_ratio = round((placed/total_attempts)*100,2) if total_attempts > 0 else 0
 
                 c1,c2,c3,c4 = st.columns(4)
-
                 c1.metric("Attempts",total_attempts)
                 c2.metric("Offers",placed)
                 c3.metric("Rejected",rejected)
                 c4.metric("Success %",f"{success_ratio}%")
 
-                fig = px.pie(
-                    names=["Placed","Rejected"],
-                    values=[placed,rejected],
-                    hole=0.6
-                )
+                fig1 = px.pie(names=["Placed","Rejected"], values=[placed,rejected], hole=0.6)
+                st.plotly_chart(fig1,use_container_width=True)
+                st.info(interpret_graph("Placement",stu_data))
 
-                st.plotly_chart(fig,use_container_width=True)
+                fig2 = px.bar(stu_data, x="Company", y="Package", color="Status")
+                st.plotly_chart(fig2,use_container_width=True)
+                st.dataframe(stu_data[["Company","Package","Status","Placed_Date"]])                            
+
 # =======================
 # ADMIN COMPANY ANALYSIS
 # =======================
