@@ -1,3 +1,5 @@
+#git pull origin main --rebase
+#git push origin main
 #git add .
 #git commit -m "added PyPDF2 dependency"
 #git push
@@ -102,18 +104,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 import google.generativeai as genai
-
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
 
 def call_gemini(prompt):
-    
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.1-flash-lite-preview",
-            contents=prompt
-        )
 
-        return getattr(response, "text", "No response")
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+
 
     except Exception as e:
         return f"Error: {str(e)}"
@@ -617,10 +616,8 @@ Give clear insights.
 """
 
     try:
-        response = client.models.generate_content(
-            model="gemini-3.1-flash-lite-preview",
-            contents=prompt
-        )
+        response = model.generate_content(prompt)
+        return response.text
         return getattr(response, "text", "No response generated")
 
     except Exception as e:
@@ -815,10 +812,8 @@ Evaluate:
 - Feedback
 """
 
-    response = client.models.generate_content(
-        model="gemini-3.1-flash-lite-preview",
-        contents=prompt
-    )
+    response = model.generate_content(prompt)
+    return response.text
     return getattr(response, "text", "No response generated")
 
 # ==========================================================
@@ -2806,10 +2801,8 @@ if selected_tab == "Communication Analyzer":
         - Final Verdict
         """
 
-            response = client.models.generate_content(
-                model="gemini-3.1-flash-lite-preview",
-                contents=prompt
-            )
+            response = model.generate_content(prompt)
+            
             output = response.text
 
             ai_feedback = response.text
@@ -2881,11 +2874,8 @@ if selected_tab == "Mock Interview":
 
     def call_gemini(prompt):
         try:
-            res = client.models.generate_content(
-                model=MODEL,
-                contents=prompt
-            )
-            return getattr(res, "text", "No response")
+            response = model.generate_content(prompt)
+            return response.text
         except Exception as e:
             return f"Error: {str(e)}"
 
