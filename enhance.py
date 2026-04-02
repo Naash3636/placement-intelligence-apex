@@ -136,7 +136,9 @@ OFFICIAL_USERS = {
     "placement_officer": {"password": "official123", "role": "Official"},
     "coordinator": {"password": "official123", "role": "Official"},
     "naash": {"password": "naash123", "role": "Official"},
-    "vellai_pandhu": {"password": "kusu123", "role": "Official"}
+    "vellai_pandhu": {"password": "kusu123", "role": "Official"},
+    "drift": {"password": "drift123", "role": "Official"}
+    
 }
 
 # ================================
