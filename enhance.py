@@ -2596,62 +2596,41 @@ if selected_tab == "Communication Analyzer":
     st.caption("Real-time + HR-level evaluation system")
     st.write(call_gemini("Say hello"))
 
-    import streamlit as st
-    from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
-    import numpy as np
-    import tempfile
-    import speech_recognition as sr
-    import wave
+    audio = audiorecorder("Start Recording", "Stop Recording")
 
-    class AudioProcessor(AudioProcessorBase):
-        def __init__(self):
-            self.frames = []
+    if len(audio) > 0:
 
-        def recv(self, frame):
-            audio = frame.to_ndarray()
-            self.frames.append(audio)
-            return frame
+        import io, uuid, tempfile
+        from pydub import AudioSegment
+        import speech_recognition as sr
 
-    st.subheader("🎤 Record your answer")
+        # Convert audio properly
+        audio_bytes = audio.export().read()
 
-    ctx = webrtc_streamer(
-        key="audio",
-        audio_processor_factory=AudioProcessor,
-        media_stream_constraints={"audio": True, "video": False},
-    )
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
+            f.write(audio_bytes)
+            filename = f.name
 
-    if ctx.audio_processor and st.button("Stop & Process"):
+        # Normalize audio (IMPORTANT)
+        sound = AudioSegment.from_file(filename)
+        sound = sound.set_frame_rate(16000).set_channels(1)
+        sound.export(filename, format="wav")
 
-        frames = ctx.audio_processor.frames
+        st.audio(audio_bytes)
 
-        if not frames:
-            st.warning("No audio recorded")
-        else:
-            # Save WAV file
-            filename = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+        recognizer = sr.Recognizer()
 
-            audio_np = np.concatenate(frames, axis=0)
+        try:
+            with sr.AudioFile(filename) as source:
+                audio_data = recognizer.record(source)
 
-            with wave.open(filename, 'wb') as wf:
-                wf.setnchannels(1)
-                wf.setsampwidth(2)
-                wf.setframerate(48000)
-                wf.writeframes(audio_np.tobytes())
+            text = recognizer.recognize_google(audio_data)
 
-            st.success("Audio recorded!")
+            st.success("Transcription:")
+            st.write(text)
 
-            # Speech Recognition
-            recognizer = sr.Recognizer()
-            try:
-                with sr.AudioFile(filename) as source:
-                    audio_data = recognizer.record(source)
-
-                text = recognizer.recognize_google(audio_data)
-
-                st.write("🗣️ You said:", text)
-
-            except Exception as e:
-                st.error("Speech recognition failed")
+        except Exception as e:
+            st.error(f"Speech recognition failed: {e}")
 
         # =========================
         # TRANSCRIPTION
@@ -2666,14 +2645,32 @@ if selected_tab == "Communication Analyzer":
         # =========================
         # AUDIO METRICS
         # =========================
+        import wave
+        import numpy as np
+
         with wave.open(filename, 'rb') as wf:
             frames = wf.getnframes()
             rate = wf.getframerate()
+            channels = wf.getnchannels()
+
             duration = frames / float(rate)
 
-            wf.rewind()
-            signal = wf.readframes(frames)
-            signal = np.frombuffer(signal, dtype=np.int16)
+            raw_signal = wf.readframes(frames)
+
+            if len(raw_signal) == 0:
+                st.error("Empty audio file")
+                st.stop()
+
+            signal = np.frombuffer(raw_signal, dtype=np.int16)
+
+            # Handle stereo → mono
+            if channels == 2:
+                signal = signal[::2]
+
+        # ✅ Now safe to use
+        energy = np.mean(np.abs(signal))
+        st.write(f"Duration: {duration:.2f}s")
+        st.write(f"Energy: {energy:.2f}")
 
         #  WPM
         wpm = (total_words / duration) * 60 if duration > 0 else 0
