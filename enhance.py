@@ -1,7 +1,8 @@
 #git pull origin main --rebase
 #git push origin main
+#echo ".streamlit/secrets.toml" >> .gitignore
 #git add .
-#git commit -m "added PyPDF2 dependency"
+#git commit -m "removed secrets"
 #git push
 import uuid
 import streamlit as st
@@ -2667,7 +2668,7 @@ if selected_tab == "Communication Analyzer":
             if channels == 2:
                 signal = signal[::2]
 
-        # ✅ Now safe to use
+        #  Now safe to use
         energy = np.mean(np.abs(signal))
         st.write(f"Duration: {duration:.2f}s")
         st.write(f"Energy: {energy:.2f}")
