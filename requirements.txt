@@ -5,3 +5,8 @@ plotly
 scikit-learn
 PyJWT
 PyPDF2
+streamlit-audiorecorder
+SpeechRecognition
+textblob
+opencv-python-headless
+google-generativeai
