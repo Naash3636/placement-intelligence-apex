@@ -2875,22 +2875,17 @@ if selected_tab == "Mock Interview":
 
     import time, uuid, cv2, numpy as np, os, re
     import streamlit as st
-    from google import genai
-
-    # =========================
-    # GEMINI CLIENT (CACHED)
-    # =========================
-    @st.cache_resource
-    def get_client():
-        return genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-
-    client = get_client()
-    MODEL = "gemini-3.1-flash-lite-preview"
+    import google.generativeai as genai
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
 
     def call_gemini(prompt):
+
         try:
             response = model.generate_content(prompt)
             return response.text
+
+
         except Exception as e:
             return f"Error: {str(e)}"
 
