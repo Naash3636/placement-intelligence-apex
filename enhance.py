@@ -1,3 +1,6 @@
+#git add .
+#git commit -m "added PyPDF2 dependency"
+#git push
 import uuid
 import streamlit as st
 import pandas as pd
@@ -98,11 +101,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-from google import genai
+import google.generativeai as genai
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def call_gemini(prompt):
+    
     try:
         response = client.models.generate_content(
             model="gemini-3.1-flash-lite-preview",
@@ -136,9 +140,7 @@ OFFICIAL_USERS = {
     "placement_officer": {"password": "official123", "role": "Official"},
     "coordinator": {"password": "official123", "role": "Official"},
     "naash": {"password": "naash123", "role": "Official"},
-    "vellai_pandhu": {"password": "kusu123", "role": "Official"},
-    "drift": {"password": "drift123", "role": "Official"}
-    
+    "vellai_pandhu": {"password": "kusu123", "role": "Official"}
 }
 
 # ================================
