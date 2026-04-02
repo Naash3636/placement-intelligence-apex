@@ -2596,45 +2596,62 @@ if selected_tab == "Communication Analyzer":
     st.caption("Real-time + HR-level evaluation system")
     st.write(call_gemini("Say hello"))
 
-    audio = audiorecorder("Start Recording", "Stop Recording")
+    import streamlit as st
+    from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
+    import numpy as np
+    import tempfile
+    import speech_recognition as sr
+    import wave
 
-    if len(audio) > 0:
+    class AudioProcessor(AudioProcessorBase):
+        def __init__(self):
+            self.frames = []
 
-        import io, uuid, wave, numpy as np, time
-        from pydub import AudioSegment
-        import speech_recognition as sr
-        import nltk
-        from textblob import TextBlob
+        def recv(self, frame):
+            audio = frame.to_ndarray()
+            self.frames.append(audio)
+            return frame
 
-        # =========================
-        # AUDIO SAVE + FIX
-        # =========================
-        audio_bytes = audio.export().read()
-        filename = f"temp_{uuid.uuid4()}.wav"
+    st.subheader("🎤 Record your answer")
 
-        audio_segment = AudioSegment.from_file(io.BytesIO(audio_bytes))
-        audio_segment = audio_segment.set_frame_rate(16000).set_channels(1)
-        audio_segment.export(filename, format="wav")
+    ctx = webrtc_streamer(
+        key="audio",
+        audio_processor_factory=AudioProcessor,
+        media_stream_constraints={"audio": True, "video": False},
+    )
 
-        st.audio(audio_bytes)
+    if ctx.audio_processor and st.button("Stop & Process"):
 
-        # =========================
-        # SPEECH TO TEXT
-        # =========================
-        recognizer = sr.Recognizer()
+        frames = ctx.audio_processor.frames
 
-        try:
-            with sr.AudioFile(filename) as source:
-                audio_data = recognizer.record(source)
+        if not frames:
+            st.warning("No audio recorded")
+        else:
+            # Save WAV file
+            filename = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
 
-            text = recognizer.recognize_google(audio_data)
+            audio_np = np.concatenate(frames, axis=0)
 
-            if not text.strip():
-                raise Exception("Empty")
+            with wave.open(filename, 'wb') as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)
+                wf.setframerate(48000)
+                wf.writeframes(audio_np.tobytes())
 
-        except:
-            st.error("Audio detected but speech recognition failed.")
-            st.stop()
+            st.success("Audio recorded!")
+
+            # Speech Recognition
+            recognizer = sr.Recognizer()
+            try:
+                with sr.AudioFile(filename) as source:
+                    audio_data = recognizer.record(source)
+
+                text = recognizer.recognize_google(audio_data)
+
+                st.write("🗣️ You said:", text)
+
+            except Exception as e:
+                st.error("Speech recognition failed")
 
         # =========================
         # TRANSCRIPTION
