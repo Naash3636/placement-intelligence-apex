@@ -10,6 +10,8 @@ import re
 from difflib import get_close_matches
 
 
+
+
 # ==========================
 # SESSION INITIALIZATION
 # ==========================
@@ -268,39 +270,47 @@ student_id = user.get("student_id", "")
 company = user.get("company", "")
 
 @st.cache_data(show_spinner=False)
-def load_data():
+def load_and_prepare_data():
 
+    # ================= LOAD FILES =================
     df_master = pd.read_csv("placement_master_10yr_full_dataset.csv", low_memory=False)
     academics = pd.read_csv("academic_history_10years.csv", low_memory=False)
     placements = pd.read_csv("placement_history_10years.csv", low_memory=False)
     companies = pd.read_csv("companies_master.csv", low_memory=False)
     drives = pd.read_csv("mis_drives_10years.csv", low_memory=False)
 
-    return df_master, academics, placements, companies, drives
+    # ================= CLEAN COLUMNS =================
+    df_master.columns = df_master.columns.str.strip()
+    academics.columns = academics.columns.str.strip()
+    placements.columns = placements.columns.str.strip()
 
-df_master, academics, placements, companies, drives = load_data()
-# ==============================
-# CREATE MASTER ANALYTICS DATASET
-# ==============================
+    # ================= MERGE =================
+    df = df_master.merge(placements, on="StudentID", how="left")
+    df = df.merge(academics, on="StudentID", how="left")
 
-# Clean column names
-df_master.columns = df_master.columns.str.strip()
-academics.columns = academics.columns.str.strip()
-placements.columns = placements.columns.str.strip()
+    # ================= AUTO GENERATE DATA =================
+    for i in range(1, 9):
 
-# Merge placements
-df = df_master.merge(
-    placements,
-    on="StudentID",
-    how="left"
-)
+        if f"SGPA_Sem{i}" not in df.columns:
+            df[f"SGPA_Sem{i}"] = np.random.uniform(6.5, 9.5, len(df)).round(2)
 
-# Merge academic history
-df = df.merge(
-    academics,
-    on="StudentID",
-    how="left"
-)
+        if f"Backlogs_Sem{i}" not in df.columns:
+            df[f"Backlogs_Sem{i}"] = np.random.randint(0, 2, len(df))
+
+        if f"Attendance_Sem{i}" not in df.columns:
+            df[f"Attendance_Sem{i}"] = np.random.uniform(70, 95, len(df)).round(1)
+
+    subjects = ["Maths", "DSA", "OS", "DBMS", "AI"]
+
+    for s in subjects:
+        for sem in range(1, 9):
+            col = f"{s}_Sem{sem}"
+            if col not in df.columns:
+                df[col] = np.random.randint(55, 100, len(df))
+
+    return df, companies, drives
+df, companies, drives = load_and_prepare_data()
+
 
 # ==============================
 # COLUMN STABILIZER
@@ -325,53 +335,632 @@ for col, default in required_cols.items():
 if "Placed_Date" in df.columns:
     df["Placed_Date"] = pd.to_datetime(df["Placed_Date"], errors="coerce")
 
-# ==============================
-# AUTO CREATE SGPA COLUMNS
-# ==============================
+# ==========================================================
+# UNIVERSAL GRAPH GENERATOR FOR ALL DATASET ATTRIBUTES
+# ==========================================================
 
-for i in range(1,9):
+import plotly.express as px
+import re
 
-    col = f"SGPA_Sem{i}"
+def universal_graph_ai(question, df):
 
-    if col not in df.columns:
-        df[col] = np.random.uniform(6.5,9.5,len(df)).round(2)
+    q = question.lower()
 
-# ==============================
-# AUTO CREATE BACKLOGS
-# ==============================
+    columns = df.columns.tolist()
 
-for i in range(1,9):
+    detected = []
 
-    col = f"Backlogs_Sem{i}"
+    # Detect columns mentioned in question
+    for col in columns:
 
-    if col not in df.columns:
-        df[col] = np.random.randint(0,2,len(df))
+        col_name = col.lower()
 
-# ==============================
-# AUTO CREATE ATTENDANCE
-# ==============================
+        if col_name in q:
+            detected.append(col)
 
-for i in range(1,9):
+    # Detect graph type
+    graph_type = "scatter"
 
-    col = f"Attendance_Sem{i}"
+    if "bar" in q:
+        graph_type = "bar"
 
-    if col not in df.columns:
-        df[col] = np.random.uniform(70,95,len(df)).round(1)
+    elif "line" in q or "trend" in q:
+        graph_type = "line"
 
-# ==============================
-# AUTO CREATE SUBJECT MARKS
-# ==============================
+    elif "hist" in q or "distribution" in q:
+        graph_type = "hist"
 
-subjects = ["Maths","DSA","OS","DBMS","AI"]
+    elif "box" in q:
+        graph_type = "box"
 
-for s in subjects:
-    for sem in range(1,9):
+    # Detect year filter
+    year_match = re.search(r"\b20\d{2}\b", q)
 
-        col = f"{s}_Sem{sem}"
+    data = df.copy()
 
-        if col not in df.columns:
-            df[col] = np.random.randint(55,100,len(df))
+    if year_match and "Year" in df.columns:
 
+        year = int(year_match.group())
+
+        data = data[data["Year"] == year]
+
+    # =========================
+    # ONE COLUMN GRAPH
+    # =========================
+
+    if len(detected) == 1:
+
+        col = detected[0]
+
+        if graph_type == "hist":
+
+            fig = px.histogram(data, x=col,
+                               title=f"{col} Distribution")
+
+        elif graph_type == "box":
+
+            fig = px.box(data, y=col,
+                         title=f"{col} Spread")
+
+        else:
+
+            counts = data[col].value_counts().reset_index()
+
+            fig = px.bar(counts,
+                         x="index",
+                         y=col,
+                         title=f"{col} Frequency")
+
+        return fig
+
+    # =========================
+    # TWO COLUMN GRAPH
+    # =========================
+
+    if len(detected) >= 2:
+
+        x = detected[0]
+        y = detected[1]
+
+        if graph_type == "scatter":
+
+            fig = px.scatter(data,
+                             x=x,
+                             y=y,
+                             title=f"{x} vs {y}")
+
+        elif graph_type == "line":
+
+            fig = px.line(data,
+                          x=x,
+                          y=y,
+                          title=f"{x} vs {y} Trend")
+
+        elif graph_type == "bar":
+
+            grouped = data.groupby(x)[y].mean().reset_index()
+
+            fig = px.bar(grouped,
+                         x=x,
+                         y=y,
+                         title=f"{x} vs {y}")
+
+        elif graph_type == "box":
+
+            fig = px.box(data,
+                         x=x,
+                         y=y,
+                         title=f"{x} vs {y}")
+
+        else:
+
+            fig = px.scatter(data, x=x, y=y)
+
+        return fig
+
+    return None
+
+
+# ==========================================================
+# AI NARRATIVE INTERPRETATION ENGINE
+# ==========================================================
+
+def generate_narrative_report(df):
+
+    placed = df[df["Status"] == "Placed"].copy()
+
+    report = {}
+
+    # ---------------- Hiring Performance ----------------
+    company_hires = placed["Company"].value_counts()
+    top_company = company_hires.idxmax() if not company_hires.empty else "N/A"
+    top_count = company_hires.max() if not company_hires.empty else 0
+    top_count = company_hires.max()
+
+    report["Hiring Performance"] = (
+        f"{top_company} recruited the highest number of students "
+        f"with {top_count} successful hires, indicating strong "
+        f"recruitment activity from this company."
+    )
+
+    # ---------------- Package Analysis ----------------
+    avg_package = placed.groupby("Company")["Package"].mean()
+
+    highest_company = avg_package.idxmax()
+    highest_package = avg_package.max()
+
+    median_salary = placed["Package"].median()
+
+    report["Package Analysis"] = (
+        f"{highest_company} offers the highest average package "
+        f"at   {round(highest_package,2)} LPA. "
+        f"The median package across companies is about "
+        f"  {round(median_salary,2)} LPA."
+    )
+
+    # ---------------- Branch Analysis ----------------
+    branch_hires = placed["Branch"].value_counts()
+    top_branch = branch_hires.idxmax()
+
+    report["Branch Performance"] = (
+        f"The {top_branch} branch shows the strongest placement "
+        f"performance with the highest number of successful placements."
+    )
+
+    # ---------------- Placement Rate ----------------
+    total_students = df["StudentID"].nunique()
+    placed_students = placed["StudentID"].nunique()
+
+    placement_rate = (placed_students / total_students) * 100
+
+    report["Placement Rate"] = (
+        f"The university placement rate is {round(placement_rate,2)}%, "
+        f"with {placed_students} students placed out of {total_students}."
+    )
+
+    # ---------------- Company Difficulty ----------------
+    applicants = df.groupby("Company")["StudentID"].count()
+    selected = placed.groupby("Company")["StudentID"].count()
+
+    difficulty = (applicants / selected).replace(np.inf,0)
+    hardest_company = difficulty.idxmax()
+
+    report["Company Difficulty"] = (
+        f"{hardest_company} appears to be the most competitive company "
+        f"based on the applicant-to-selection ratio."
+    )
+
+    # ---------------- Skill Demand ----------------
+    skills = df["Skills"].str.split(",", expand=True).stack().value_counts()
+    top_skill = skills.idxmax()
+
+    report["Skill Demand"] = (
+        f"The most demanded skill among placed students is {top_skill}."
+    )
+
+    # ---------------- Placement Trend ----------------
+    yearly = placed.groupby("Year")["StudentID"].nunique()
+    best_year = yearly.idxmax()
+
+    report["Placement Trend"] = (
+        f"The strongest placement performance occurred in {best_year}."
+    )
+
+    return report
+
+
+# ==========================================================
+# RULE-BASED AI COPILOT
+# ==========================================================
+
+def placement_ai_copilot(question, df):
+
+    placed = df[df["Status"]=="Placed"]
+    question = question.lower()
+
+    if "highest package" in question or "top paying" in question:
+
+        avg_package = placed.groupby("Company")["Package"].mean()
+        company = avg_package.idxmax()
+        package = avg_package.max()
+
+        return f"The highest paying company is {company} offering about   {round(package,2)} LPA."
+
+    elif "most students" in question or "most hiring" in question:
+
+        hires = placed["Company"].value_counts()
+        company = hires.idxmax()
+        count = hires.max()
+
+        return f"{company} hired the highest number of students ({count})."
+
+    elif "placement rate" in question:
+
+        total = df["StudentID"].nunique()
+        placed_students = placed["StudentID"].nunique()
+
+        rate = (placed_students/total)*100
+
+        return f"The placement rate is {round(rate,2)}%."
+
+    elif "best branch" in question:
+
+        branch = placed["Branch"].value_counts().idxmax()
+
+        return f"The branch with the highest placements is {branch}."
+
+    elif "skills" in question:
+
+        skills = df["Skills"].str.split(",",expand=True).stack().value_counts()
+        top_skill = skills.idxmax()
+
+        return f"The most demanded skill is {top_skill}."
+
+    else:
+        return "Try asking about companies, packages, branches, skills, or placement rate."
+
+
+# ============================================================
+# COLUMN INTELLIGENCE ENGINE
+# ============================================================
+
+def detect_columns(question, df):
+
+    q = question.lower()
+    columns = list(df.columns)
+
+    detected = []
+
+    for col in columns:
+
+        name = col.lower().replace("_"," ")
+
+        if name in q:
+            detected.append(col)
+
+        else:
+
+            words = name.split()
+
+            for w in words:
+
+                if w in q:
+                    detected.append(col)
+
+    # fuzzy matching
+    for word in q.split():
+
+        match = get_close_matches(word, columns, n=1, cutoff=0.8)
+
+        if match:
+            detected.append(match[0])
+
+    return list(set(detected))
+
+
+# ============================================================
+# YEAR DETECTION
+# ============================================================
+
+def detect_year(question):
+
+    year_match = re.search(r"\b20\d{2}\b", question)
+
+    if year_match:
+        return int(year_match.group())
+
+    return None
+
+
+# ============================================================
+# UNIVERSAL DATA ANALYSIS ENGINE
+# ============================================================
+
+def dataset_ai_engine(question, df):
+
+    q = question.lower()
+
+    data = df.copy()
+
+    detected_columns = detect_columns(q, df)
+
+    year = detect_year(q)
+
+    if year and "Year" in df.columns:
+
+        data = data[data["Year"] == year]
+
+
+    # ========================================================
+    # MOST / HIGHEST
+    # ========================================================
+
+    if "most" in q or "highest" in q or "maximum" in q:
+
+        if "company" in q:
+
+            placed = data[data["Status"] == "Placed"]
+
+            counts = placed["Company"].value_counts()
+
+            company = counts.idxmax()
+
+            count = counts.max()
+
+            return f"{company} hired the most students ({count})."
+
+
+        if "package" in q:
+
+            row = data.loc[data["Package"].idxmax()]
+
+            return f"""
+Highest Package Analysis
+
+Student : {row['Name']}
+
+Company : {row['Company']}
+
+Package :   {row['Package']} LPA
+"""
+
+
+        if "cgpa" in q:
+
+            row = data.loc[data["CGPA"].idxmax()]
+
+            return f"{row['Name']} has the highest CGPA of {row['CGPA']}."
+
+
+        if "branch" in q:
+
+            placed = data[data["Status"] == "Placed"]
+
+            branch = placed["Branch"].value_counts().idxmax()
+
+            return f"{branch} branch has the highest placements."
+
+
+    # ========================================================
+    # TOP N ANALYSIS
+    # ========================================================
+
+    if "top" in q:
+
+        number = re.search(r"\d+", q)
+
+        n = 5
+
+        if number:
+            n = int(number.group())
+
+        if "package" in q:
+
+            top = data.sort_values("Package", ascending=False).head(n)
+
+            result = f"Top {n} Highest Packages\n\n"
+
+            for _, r in top.iterrows():
+
+                result += f"{r['Name']} - {r['Company']} -   {r['Package']} LPA\n"
+
+            return result
+
+
+        if "cgpa" in q:
+
+            top = data.sort_values("CGPA", ascending=False).head(n)
+
+            result = f"Top {n} Students by CGPA\n\n"
+
+            for _, r in top.iterrows():
+
+                result += f"{r['Name']} - {r['CGPA']}\n"
+
+            return result
+
+
+    # ========================================================
+    # COUNT QUERIES
+    # ========================================================
+
+    if "how many" in q or "count" in q:
+
+        if "students" in q:
+
+            return f"Total Students : {data['StudentID'].nunique()}"
+
+
+        if "placed" in q:
+
+            placed = data[data["Status"] == "Placed"]
+
+            return f"Placed Students : {placed['StudentID'].nunique()}"
+
+
+        if "company" in q:
+
+            return f"Total Companies : {data['Company'].nunique()}"
+
+
+    # ========================================================
+    # AVERAGE ANALYSIS
+    # ========================================================
+
+    if "average" in q or "mean" in q:
+
+        if "package" in q:
+
+            avg = data["Package"].mean()
+
+            return f"Average Package :   {round(avg,2)} LPA"
+
+
+        if "cgpa" in q:
+
+            avg = data["CGPA"].mean()
+
+            return f"Average CGPA : {round(avg,2)}"
+
+
+    # ========================================================
+    # GENERAL DATA EXPLORATION
+    # ========================================================
+
+    if detected_columns:
+
+        col = detected_columns[0]
+
+        if data[col].dtype in ["int64","float64"]:
+
+            return f"""
+Statistics for {col}
+
+Mean : {round(data[col].mean(),2)}
+
+Max : {data[col].max()}
+
+Min : {data[col].min()}
+"""
+
+        else:
+
+            return f"""
+Top values for {col}
+
+{data[col].value_counts().head(5)}
+"""
+
+
+    return "I analyzed the dataset but could not fully interpret the question."
+
+# ==========================================================
+# PLACEMENT SCORE
+# ==========================================================
+
+def placement_score(profile):
+
+    sgpa = np.mean([profile[f"SGPA_Sem{i}"] for i in range(1, 9)])
+    backlogs = sum([profile[f"Backlogs_Sem{i}"] for i in range(1, 9)])
+    skills = len(str(profile.get("Skills", "")).split(","))
+    attendance = np.mean([profile[f"Attendance_Sem{i}"] for i in range(1, 9)])
+
+    score = (
+        sgpa * 10 * 0.4 +
+        (skills * 5) * 0.2 +
+        attendance * 0.2 -
+        backlogs * 5
+    )
+
+    return max(0, min(100, round(score, 2)))
+
+
+# ==========================================================
+# AI SUMMARY
+# ==========================================================
+
+def ai_summary(profile):
+
+    sgpa = np.mean([profile[f"SGPA_Sem{i}"] for i in range(1, 9)])
+    backlogs = sum([profile[f"Backlogs_Sem{i}"] for i in range(1, 9)])
+    skills = len(str(profile.get("Skills", "")).split(","))
+
+    if sgpa > 8 and backlogs == 0:
+        return "Excellent academic performance. Strong placement potential."
+
+    elif sgpa > 7:
+        return "Good academic record. Improve skills to increase placement chances."
+
+    elif backlogs > 2:
+        return "Backlogs are affecting placement chances. Focus on clearing them."
+
+    else:
+        return "Moderate performance. Needs improvement in academics and skills."
+
+
+# ==========================================================
+# ML MODEL TRAINING
+# ==========================================================
+
+from sklearn.ensemble import RandomForestClassifier
+
+@st.cache_resource
+def train_model_cached():
+    df_model, _, _ = load_and_prepare_data()
+
+    model_df = df_model.copy()
+
+    model_df["Placed_Flag"] = (model_df["Status"] == "Placed").astype(int)
+
+    model_df["Avg_SGPA"] = model_df[[f"SGPA_Sem{i}" for i in range(1,9)]].mean(axis=1)
+    model_df["Total_Backlogs"] = model_df[[f"Backlogs_Sem{i}" for i in range(1,9)]].sum(axis=1)
+    model_df["Avg_Attendance"] = model_df[[f"Attendance_Sem{i}" for i in range(1,9)]].mean(axis=1)
+    model_df["Skill_Count"] = model_df["Skills"].apply(lambda x: len(str(x).split(",")))
+
+    X = model_df[["Avg_SGPA","Total_Backlogs","Avg_Attendance","Skill_Count"]]
+    y = model_df["Placed_Flag"]
+
+    model = RandomForestClassifier(n_estimators=30, max_depth=8)
+    model.fit(X, y)
+
+    return model
+
+# Load model once
+model = train_model_cached()
+
+
+# ==========================================================
+# STUDENT RANKING
+# ==========================================================
+
+def rank_students(df, model):
+
+    temp = df.copy()
+
+    temp["Avg_SGPA"] = temp[[f"SGPA_Sem{i}" for i in range(1, 9)]].mean(axis=1)
+    temp["Total_Backlogs"] = temp[[f"Backlogs_Sem{i}" for i in range(1, 9)]].sum(axis=1)
+    temp["Avg_Attendance"] = temp[[f"Attendance_Sem{i}" for i in range(1, 9)]].mean(axis=1)
+    temp["Skill_Count"] = temp["Skills"].apply(lambda x: len(str(x).split(",")))
+
+    X = temp[["Avg_SGPA", "Total_Backlogs", "Avg_Attendance", "Skill_Count"]]
+
+    temp["Score"] = model.predict_proba(X)[:, 1]
+    temp["Rank"] = temp["Score"].rank(ascending=False)
+
+    return temp
+
+
+# ==========================================================
+# GRAPH INTERPRETER
+# ==========================================================
+
+def interpret_graph(title, data):
+
+    if title == "SGPA":
+        avg = data["SGPA"].mean()
+        trend = "improving" if data["SGPA"].iloc[-1] > data["SGPA"].iloc[0] else "declining"
+        return f"The student's academic performance is {trend} with an average SGPA of {round(avg, 2)}."
+
+    elif title == "Backlogs":
+        total = data["Backlogs"].sum()
+        return f"The student has {total} total backlogs across semesters."
+
+    elif title == "Attendance":
+        avg = data["Attendance"].mean()
+        status = "good" if avg > 75 else "poor"
+        return f"Average attendance is {round(avg, 1)}%, indicating {status} consistency."
+
+    elif title == "Subjects":
+        top = data.sort_values("Marks", ascending=False).iloc[0]["Subject"]
+        return f"The strongest subject appears to be {top}."
+
+    elif title == "Placement":
+        offers = len(data[data["Status"] == "Placed"])
+        attempts = len(data)
+        rate = round((offers / attempts) * 100, 2) if attempts > 0 else 0
+        return f"The student has a placement success rate of {rate}%."
+
+    return "No interpretation available."
 # =======================
 # HEADER DESIGN
 # =======================
@@ -431,6 +1020,7 @@ elif role == "Student":
     tabs = st.tabs([
         "Home",
         "Student Dashboard"
+        
     ])
 
 with tabs[0]:
@@ -626,15 +1216,6 @@ with tabs[1]:
 # =======================
 # STUDENT DASHBOARD
 # =======================
-
-# =======================
-# STUDENT DASHBOARD
-# =======================
-
-# =======================
-# STUDENT DASHBOARD
-# =======================
-
 with tabs[2]:
     st.markdown("## Student Profile Portal")
 
@@ -661,6 +1242,23 @@ with tabs[2]:
         key="student_select_main"
     )
 
+    if selected_student != "Select Student":
+
+        st.session_state["selected_student"] = selected_student
+
+    if "selected_student" in st.session_state:
+
+        stu_data = df[df["StudentID"].astype(str) == str(st.session_state["selected_student"])]
+
+        if not stu_data.empty:
+
+            profile = stu_data.iloc[0]
+
+            st.success(f"Loaded Student: {profile['Name']}")
+
+        else:
+            st.warning("No data found")
+
     if selected_student == "Select Student":
         st.info("Please select a student")
 
@@ -673,36 +1271,7 @@ with tabs[2]:
         else:
             profile = stu_data.iloc[0]
 
-            # ==========================================================
-            # AI GRAPH INTERPRETER
-            # ==========================================================
-
-            def interpret_graph(title, data):
-                if title == "SGPA":
-                    avg = data["SGPA"].mean()
-                    trend = "improving" if data["SGPA"].iloc[-1] > data["SGPA"].iloc[0] else "declining"
-                    return f"The student's academic performance is {trend} with an average SGPA of {round(avg,2)}."
-
-                if title == "Backlogs":
-                    total = data["Backlogs"].sum()
-                    return f"The student has {total} total backlogs across semesters."
-
-                if title == "Attendance":
-                    avg = data["Attendance"].mean()
-                    return f"Average attendance is {round(avg,1)}%, which indicates {'good' if avg>75 else 'poor'} consistency."
-
-                if title == "Subjects":
-                    top = data.sort_values("Marks",ascending=False).iloc[0]["Subject"]
-                    return f"The strongest subject appears to be {top}."
-
-                if title == "Placement":
-                    offers = len(data[data["Status"]=="Placed"])
-                    attempts = len(data)
-                    rate = round((offers/attempts)*100,2)
-                    return f"The student has a placement success rate of {rate}%."
-
-                return "No interpretation available."
-
+            
             # ==========================================================
             # CLUBBED STUDENT SECTIONS
             # ==========================================================
@@ -719,81 +1288,409 @@ with tabs[2]:
             # ==========================================================
 
             with student_tabs[0]:
-                st.subheader("Student Profile")
-                col1,col2 = st.columns([1,3])
+
+                # =========================
+                # 🎨 CLEAN CSS
+                # =========================
+                st.markdown("""
+                <style>
+                .title {font-size:28px;font-weight:bold;color:#a78bfa;}
+                .sub {color:#cbd5f5;margin-bottom:10px;}
+                .card {
+                    background: rgba(255,255,255,0.05);
+                    padding:15px;
+                    border-radius:12px;
+                    margin-bottom:12px;
+                }
+                .chip {
+                    display:inline-block;
+                    padding:6px 12px;
+                    margin:4px;
+                    background:#6366f1;
+                    border-radius:20px;
+                    color:white;
+                    font-size:12px;
+                }
+                </style>
+                """, unsafe_allow_html=True)
+
+                # =========================
+                # 👤 HEADER
+                # =========================
+                c1,c2 = st.columns([1,4])
+                with c1:
+                    st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=120)
+                with c2:
+                    st.markdown(f'<div class="title">{profile["Name"]}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="sub">{profile["Branch"]} | ID: {profile["StudentID"]}</div>', unsafe_allow_html=True)
+
+                st.markdown("---")
+
+                # =========================
+                # 📊 KPI ROW
+                # =========================
+                cgpa = round(np.mean([profile[f"SGPA_Sem{i}"] for i in range(1,9)]),2)
+                backlogs = sum([profile[f"Backlogs_Sem{i}"] for i in range(1,9)])
+                skills = profile["Skills"].split(",")
+                placed = "Placed" if profile["Status"]=="Placed" else "Not Placed"
+
+                k1,k2,k3,k4 = st.columns(4)
+                k1.metric("CGPA", cgpa)
+                k2.metric("Placement", placed)
+                k3.metric("Backlogs", backlogs)
+                k4.metric("Skills", len(skills))
+
+                # Prepare student input
+                input_data = pd.DataFrame({
+                    "Avg_SGPA": [np.mean([profile[f"SGPA_Sem{i}"] for i in range(1,9)])],
+                    "Total_Backlogs": [sum([profile[f"Backlogs_Sem{i}"] for i in range(1,9)])],
+                    "Avg_Attendance": [np.mean([profile[f"Attendance_Sem{i}"] for i in range(1,9)])],
+                    "Skill_Count": [len(profile["Skills"].split(","))]
+                })
+
+                
+
+                prob = model.predict_proba(input_data)[0][1] * 100
+                prob = round(prob,2)
+
+                st.markdown("### 🎯 Placement Prediction")
+
+                col1, col2 = st.columns([3,1])
 
                 with col1:
-                    st.image(
-                        "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-                        width=130
-                    )
+                    st.progress(prob/100)
 
                 with col2:
-                    for col in df.columns:
-                        if col not in [
-                            "SGPA_Sem1","SGPA_Sem2","SGPA_Sem3","SGPA_Sem4",
-                            "SGPA_Sem5","SGPA_Sem6","SGPA_Sem7","SGPA_Sem8",
-                            "Maths_Sem1","Maths_Sem2","Maths_Sem3","Maths_Sem4",
-                            "Maths_Sem5","Maths_Sem6","Maths_Sem7","Maths_Sem8",
-                            "DSA_Sem1","DSA_Sem2","DSA_Sem3","DSA_Sem4",
-                            "DSA_Sem5","DSA_Sem6","DSA_Sem7","DSA_Sem8",
-                            "OS_Sem1","OS_Sem2","OS_Sem3","OS_Sem4",
-                            "OS_Sem5","OS_Sem6","OS_Sem7","OS_Sem8",
-                            "DBMS_Sem1","DBMS_Sem2","DBMS_Sem3","DBMS_Sem4",
-                            "DBMS_Sem5","DBMS_Sem6","DBMS_Sem7","DBMS_Sem8",
-                            "AI_Sem1","AI_Sem2","AI_Sem3","AI_Sem4",
-                            "AI_Sem5","AI_Sem6","AI_Sem7","AI_Sem8",
-                            "Backlogs_Sem1","Backlogs_Sem2","Backlogs_Sem3","Backlogs_Sem4",
-                            "Backlogs_Sem5","Backlogs_Sem6","Backlogs_Sem7","Backlogs_Sem8",
-                            "Attendance_Sem1","Attendance_Sem2","Attendance_Sem3","Attendance_Sem4",
-                            "Attendance_Sem5","Attendance_Sem6","Attendance_Sem7","Attendance_Sem8"
-                        ]:
-                            st.write(f"**{col}** :", profile.get(col,""))
+                    st.metric("Probability", f"{prob}%")
+
+                # Color feedback
+                if prob > 75:
+                    st.success("High chance of placement 🚀")
+
+                elif prob > 50:
+                    st.warning("Moderate chance ⚠ Improve skills")
+
+                else:
+                    st.error("Low placement probability ❗")
+
+                # =========================
+                # 📚 ACADEMIC SNAPSHOT
+                # =========================
+                st.markdown("###  Academic Snapshot")
+
+                sgpas = [profile[f"SGPA_Sem{i}"] for i in range(1,9)]
+
+                best_sem = sgpas.index(max(sgpas)) + 1
+                weak_sem = sgpas.index(min(sgpas)) + 1
+
+                a1,a2,a3 = st.columns(3)
+                a1.metric("Avg SGPA", round(np.mean(sgpas),2))
+                a2.metric("Best Semester", f"Sem {best_sem}")
+                a3.metric("Weak Semester", f"Sem {weak_sem}")
+
+                # =========================
+                # 💼 PLACEMENT SNAPSHOT
+                # =========================
+                st.markdown("###  Placement Snapshot")
+
+                total = len(stu_data)
+                offers = len(stu_data[stu_data["Status"]=="Placed"])
+                success = round((offers/total)*100,2) if total else 0
+
+                p1,p2,p3 = st.columns(3)
+                p1.metric("Attempts", total)
+                p2.metric("Offers", offers)
+                p3.metric("Success %", f"{success}%")
+
+                # =========================
+                # 🧠 SKILLS
+                # =========================
+                st.markdown("###  Skills")
+
+                for s in skills:
+                    st.markdown(f'<span class="chip">{s}</span>', unsafe_allow_html=True)
+
+                # =========================
+                # 🏆 ACHIEVEMENTS
+                # =========================
+                st.markdown("###  Achievements")
+
+                c1,c2,c3 = st.columns(3)
+                c1.metric("Hackathons", profile["Hackathons"])
+                c2.metric("Papers", profile["Papers"])
+                c3.metric("Conferences", profile["Conferences"])
+
+                # =========================
+                # 📋 DETAILS
+                # =========================
+                st.markdown("###  Details")
+
+                important_cols = ["StudentID","Name","Branch","Year","Company","Status","Package"]
+
+                col1,col2 = st.columns(2)
+
+                for i,col in enumerate(important_cols):
+                    with (col1 if i%2==0 else col2):
+                        st.markdown(f"**{col}**: {profile.get(col,'')}")
+
+                
+                score = placement_score(profile)
+
+                st.markdown("###  Placement Readiness")
+
+                st.progress(score/100)
+                st.metric("Score", f"{score}%")
+
+                st.markdown("###  AI Insight")
+                st.info(ai_summary(profile))
+
+                st.markdown("###  Risk Indicators")
+
+                if backlogs > 2:
+                    st.error("High number of backlogs")
+
+                if cgpa < 6.5:
+                    st.warning("Low CGPA")
+
+                if len(skills) < 3:
+                    st.warning("Insufficient skills")
+
+                st.markdown("###  Suggested Companies")
+
+                if "Python" in profile["Skills"]:
+                    st.success("Good fit for Software / Data roles")
+
+                if cgpa > 8:
+                    st.success("Eligible for top-tier companies")
+
+                if backlogs > 0:
+                    st.warning("Some companies may restrict due to backlogs")
+
+                @st.cache_data
+                def get_ranked_students(df):
+                    return rank_students(df, model)
+                rank_df = get_ranked_students(df)
+
+                student_rank = rank_df[rank_df["StudentID"] == profile["StudentID"]]["Rank"].values[0]
+
+                st.metric(" Rank", f"{int(student_rank)}")
 
             # ==========================================================
             # ACADEMICS TAB
             # ==========================================================
+            st.markdown("""
+            <style>
+
+            /* App background */
+            .stApp {
+                background: linear-gradient(135deg, #0f172a, #020617);
+                color: white;
+            }
+
+            /* Glass container */
+            .glass {
+                background: rgba(255,255,255,0.06);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                border-radius: 16px;
+                border: 1px solid rgba(255,255,255,0.12);
+                padding: 20px;
+                margin-bottom: 15px;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+            }
+
+            /* Header */
+            .section-title {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            /* KPI card */
+            .kpi {
+                background: rgba(255,255,255,0.05);
+                padding: 15px;
+                border-radius: 12px;
+                text-align: center;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* Buttons */
+            .stButton > button {
+                border-radius: 10px;
+                background: linear-gradient(90deg,#6a11cb,#2575fc);
+                color: white;
+                border: none;
+            }
+
+            </style>
+            """, unsafe_allow_html=True)
 
             with student_tabs[1]:
-                st.subheader("Academic Analytics")
 
-                # SGPA GRAPH
-                sem_df = pd.DataFrame({
-                    "Semester":[1,2,3,4,5,6,7,8],
-                    "SGPA":[profile[f"SGPA_Sem{i}"] for i in range(1,9)]
-                })
-                fig = px.line(sem_df,x="Semester",y="SGPA",markers=True)
-                st.plotly_chart(fig,use_container_width=True)
-                st.info(interpret_graph("SGPA",sem_df))
+                st.markdown('<div class="section-title">Academic Intelligence Command Center</div>', unsafe_allow_html=True)
 
-                # SUBJECT GRAPH
-                sem = st.selectbox("Select Semester",[1,2,3,4,5,6,7,8])
-                subjects = [f"Maths_Sem{sem}", f"DSA_Sem{sem}", f"OS_Sem{sem}", f"DBMS_Sem{sem}", f"AI_Sem{sem}"]
-                subject_df = pd.DataFrame({
-                    "Subject":["Maths","DSA","OS","DBMS","AI"],
-                    "Marks":[profile[col] for col in subjects]
-                })
-                fig_sub = px.bar(subject_df,x="Subject",y="Marks")
-                st.plotly_chart(fig_sub,use_container_width=True)
-                st.info(interpret_graph("Subjects",subject_df))
+                # =========================
+                # DATA
+                # =========================
+                sgpas = np.array([profile[f"SGPA_Sem{i}"] for i in range(1,9)])
+                backlogs = np.array([profile[f"Backlogs_Sem{i}"] for i in range(1,9)])
+                attendance = np.array([profile[f"Attendance_Sem{i}"] for i in range(1,9)])
 
-                # BACKLOG GRAPH
-                backlog_df = pd.DataFrame({
-                    "Semester":[1,2,3,4,5,6,7,8],
-                    "Backlogs":[profile[f"Backlogs_Sem{i}"] for i in range(1,9)]
-                })
-                fig_back = px.bar(backlog_df,x="Semester",y="Backlogs")
-                st.plotly_chart(fig_back,use_container_width=True)
-                st.info(interpret_graph("Backlogs",backlog_df))
+                avg_sgpa = sgpas.mean()
+                consistency = sgpas.std()
+                total_backlogs = backlogs.sum()
+                avg_att = attendance.mean()
 
-                # ATTENDANCE
-                attendance_df = pd.DataFrame({
-                    "Semester":[1,2,3,4,5,6,7,8],
-                    "Attendance":[profile[f"Attendance_Sem{i}"] for i in range(1,9)]
+                # =========================
+                # KPI GLASS ROW
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+
+                df["Avg_SGPA"] = df[[f"SGPA_Sem{i}" for i in range(1,9)]].mean(axis=1)
+                class_avg = df["Avg_SGPA"].mean()
+
+                rank = df["Avg_SGPA"].rank(ascending=False)
+                student_rank = int(rank[df["StudentID"] == profile["StudentID"]].values[0])
+                percentile = round((1 - student_rank/len(df)) * 100,2)
+
+                c1,c2,c3,c4,c5 = st.columns(5)
+                c1.metric("SGPA", round(avg_sgpa,2))
+                c2.metric("Class Avg", round(class_avg,2))
+                c3.metric("Rank", student_rank)
+                c4.metric("Percentile", f"{percentile}%")
+                c5.metric("Backlogs", int(total_backlogs))
+
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # =========================
+                # COMPARISON
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+                st.markdown("### Performance vs Class")
+
+                comp_df = pd.DataFrame({
+                    "Type": ["Student","Class"],
+                    "SGPA": [avg_sgpa, class_avg]
                 })
-                fig_att = px.bar(attendance_df,x="Semester",y="Attendance")
-                st.plotly_chart(fig_att,use_container_width=True)
-                st.info(interpret_graph("Attendance",attendance_df))
+
+                st.plotly_chart(px.bar(comp_df, x="Type", y="SGPA"), use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # =========================
+                # TREND + PREDICTION
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+
+                col1,col2 = st.columns([2,1])
+
+                with col1:
+                    sem_df = pd.DataFrame({"Semester":range(1,9),"SGPA":sgpas})
+                    st.plotly_chart(px.line(sem_df,x="Semester",y="SGPA",markers=True),
+                                    use_container_width=True)
+
+                with col2:
+                    growth = (sgpas[-1]-sgpas[0])/7
+                    predicted = sgpas[-1]+growth
+
+                    st.metric("Predicted SGPA", round(predicted,2))
+
+                    if predicted > avg_sgpa:
+                        st.success("Positive trend expected")
+                    else:
+                        st.warning("Stagnation risk")
+
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # =========================
+                # DOMAIN INTELLIGENCE
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+                st.markdown("### Domain Intelligence")
+
+                subject_cols = [c for c in df.columns if "_Sem" in c and not any(x in c for x in ["SGPA","Attendance","Backlogs"])]
+
+                domain_scores = {"AI/ML":0,"Core CS":0,"Finance":0}
+
+                for col in subject_cols:
+                    val = profile[col]
+                    name = col.lower()
+
+                    if "ai" in name:
+                        domain_scores["AI/ML"] += val
+                    elif "db" in name or "os" in name:
+                        domain_scores["Core CS"] += val
+                    elif "finance" in name:
+                        domain_scores["Finance"] += val
+
+                best_domain = max(domain_scores, key=domain_scores.get)
+
+                st.write("Best Domain Fit:", best_domain)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # =========================
+                # SUBJECT ANALYSIS
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+                st.markdown("### Subject Intelligence")
+
+                sem = st.selectbox("Semester",[1,2,3,4,5,6,7,8])
+
+                cols = [c for c in df.columns if f"_Sem{sem}" in c and not any(x in c for x in ["SGPA","Attendance","Backlogs"])]
+                sub = [c.replace(f"_Sem{sem}","") for c in cols]
+                marks = [profile[c] for c in cols]
+
+                sdf = pd.DataFrame({"Subject":sub,"Marks":marks})
+
+                c1,c2 = st.columns(2)
+                c1.plotly_chart(px.bar(sdf,x="Subject",y="Marks"),use_container_width=True)
+                c2.plotly_chart(px.line_polar(sdf,r="Marks",theta="Subject",line_close=True),use_container_width=True)
+
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # =========================
+                # ADVANCED FEATURE (NEW)
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+                st.markdown("### Performance Distribution")
+
+                st.plotly_chart(px.histogram(df, x="Avg_SGPA"), use_container_width=True)
+
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # =========================
+                # RISK + PLAN
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+                st.markdown("### Risk and Recommendations")
+
+                if avg_sgpa < class_avg:
+                    st.warning("Below class average performance")
+
+                if total_backlogs > 0:
+                    st.warning("Backlogs present")
+
+                if avg_att < 75:
+                    st.warning("Attendance below optimal level")
+
+                st.write("Recommended Actions:")
+                st.write("- Improve weak subjects")
+                st.write("- Maintain consistency")
+                st.write("- Focus on domain skills")
+
+                st.markdown('</div>', unsafe_allow_html=True)
+
+                # =========================
+                # EXPORT
+                # =========================
+                st.markdown('<div class="glass">', unsafe_allow_html=True)
+                st.markdown("### Export")
+
+                if st.button("Download Report"):
+                    report = f"SGPA:{avg_sgpa}, Rank:{student_rank}, Domain:{best_domain}"
+                    st.download_button("Download", report, "report.txt")
+
+                st.markdown('</div>', unsafe_allow_html=True)
 
             # ==========================================================
             # SKILLS & ACTIVITIES
@@ -801,7 +1698,7 @@ with tabs[2]:
 
             with student_tabs[2]:
                 st.subheader("Skills & Achievements")
-                skills = profile["Skills"].split(",")
+                skills = str(profile.get("Skills","")).split(",")
                 skill_df = pd.DataFrame({
                     "Skill":skills,
                     "Level":[80+5*i for i in range(len(skills))]
@@ -1045,17 +1942,27 @@ with tabs[3]:
     # -----------------------------------------------------
     st.markdown("### 8   Internship to PPO Conversion")
 
-    if "JobType" in df.columns:
-        ppo = df["JobType"].value_counts().reset_index()
-        ppo.columns = ["Type","Count"]
+    temp_df = df.groupby("Year")["Package"].mean().reset_index()
 
-        fig = px.bar(
-            ppo,
-            x="Type",
-            y="Count",
-            title="Internship vs Full-time Hiring"
-        )
-        st.plotly_chart(fig,use_container_width=True)
+    fig = px.line(
+        temp_df,
+        x="Year",
+        y="Package",
+        markers=True
+    )
+
+    fig.update_traces(
+        mode="lines+markers",
+        line=dict(width=3),
+        marker=dict(size=8)
+    )
+
+    fig.update_layout(
+        template="plotly_dark",
+        showlegend=False
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 
     # -----------------------------------------------------
@@ -1360,6 +2267,17 @@ with tabs[4]:
                 "Drive Status": drive_status,
                 "Selected Students": selected
             }
+
+            import os
+
+            file_path = "company_drives.csv"
+
+            new_data = pd.DataFrame([company_data])
+
+            if os.path.exists(file_path):
+                new_data.to_csv(file_path, mode='a', header=False, index=False)
+            else:
+                new_data.to_csv(file_path, index=False)
 
             st.success("   Company Drive Registered Successfully")
             st.json(company_data)
