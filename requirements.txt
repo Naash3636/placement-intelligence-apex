@@ -6,3 +6,4 @@ google-generativeai
 PyJWT
 PyPDF2
 streamlit-audiorecorder
+scikit-learn
