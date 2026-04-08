@@ -6,5 +6,8 @@ google-generativeai
 PyJWT
 PyPDF2
 streamlit-audiorecorder
-
-from sklearn.ensemble import RandomForestClassifier
+sklearn.ensemble 
+cv2
+speech_recognition 
+textblob
+pydub
