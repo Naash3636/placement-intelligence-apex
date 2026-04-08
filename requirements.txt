@@ -2,15 +2,7 @@ streamlit
 pandas
 numpy
 plotly
-scikit-learn
+google-generativeai
 PyJWT
 PyPDF2
 streamlit-audiorecorder
-SpeechRecognition
-textblob
-opencv-python-headless
-google-generativeai
-pydubstreamlit-audiorecorder
-pydub
-SpeechRecognition
-ffmpeg-python
