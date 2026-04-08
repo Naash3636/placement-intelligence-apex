@@ -10,3 +10,7 @@ SpeechRecognition
 textblob
 opencv-python-headless
 google-generativeai
+pydubstreamlit-audiorecorder
+pydub
+SpeechRecognition
+ffmpeg-python

@@ -1,9 +1,10 @@
-#git pull origin main --rebase
-#git push origin main
-#echo ".streamlit/secrets.toml" >> .gitignore
-#git add .
-#git commit -m "removed secrets"
-#git push
+# git pull origin main --rebase
+# git push origin main
+# echo ".streamlit/secrets.toml" >> .gitignore
+# git add .
+# git commit -m "removed secrets"
+# git push
+
 import uuid
 import streamlit as st
 import pandas as pd
@@ -18,7 +19,7 @@ from difflib import get_close_matches
 import os
 import PyPDF2
 
-#communication and interview libraries
+# communication and interview libraries
 from audiorecorder import audiorecorder
 import speech_recognition as sr
 from textblob import TextBlob
@@ -48,37 +49,62 @@ st.set_page_config(
     layout="wide",
     page_icon="  "
 )
+
+
+# ================================
+# CUSTOM CSS FOR LOGIN PAGE
+# ================================
+
 st.markdown("""
 <style>
-.block-container {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+
+/* Main background */
+.stApp {
+    background: linear-gradient(135deg,#0f172a,#020617);
+    color:white;
 }
+
+/* Glass card style */
+.glass-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* Glass header */
+.glass-header {
+    background: rgba(139,92,246,0.35);
+    backdrop-filter: blur(15px);
+    border-radius: 14px;
+    padding: 20px;
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:white;
+}
+
+/* KPI glass cards */
+.metric-card {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 15px;
+    border:1px solid rgba(255,255,255,0.12);
+}
+
+/* Input glass */
+.stTextInput > div > div > input {
+    background: rgba(255,255,255,0.08);
+    color:white;
+    border-radius:10px;
+}
+
 </style>
 """, unsafe_allow_html=True)
-
-def load_css():
-    with open("styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-load_css()
-def login_page():
-
-    st.markdown('<div class="login-container">', unsafe_allow_html=True)
-
-    
-    login_type = st.selectbox("Login As", [
-        "Official (Placement Cell)",
-        "Student",
-        "Company Admin"
-    ])
-
-    username = st.text_input("Username / StudentID")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login", use_container_width=True):
-        # keep your existing logic
-        pass
 
 
 
@@ -816,12 +842,124 @@ def speech_to_text(audio_bytes):
 
 if "active_tab" not in st.session_state:
     st.session_state["active_tab"] = "Home"
+# ==========================================================
+# HEADER STYLE
+# ==========================================================
 
-px.defaults.template = "simple_white"
+st.markdown("""
+<style>
 
-# =============================
+/* ===== MAIN BACKGROUND ===== */
+.stApp {
+    background: linear-gradient(135deg, #020617, #0f172a);
+    color: #e2e8f0;
+}
+
+/* ===== REMOVE HEADER SPACE ===== */
+header {visibility: hidden;}
+.block-container {padding-top: 1rem;}
+
+/* ===== GLASS HEADER ===== */
+.glass-header {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    padding: 20px;
+    border-radius: 14px;
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+
+/* ===== CARD ===== */
+.card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(18px);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+/* ===== KPI ===== */
+.kpi-card {
+    background: rgba(255,255,255,0.05);
+    padding: 18px;
+    border-radius: 14px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: 0.3s;
+}
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(99,102,241,0.4);
+}
+
+.kpi-title {
+    font-size: 14px;
+    color: #cbd5f5;
+}
+.kpi-value {
+    font-size: 26px;
+    font-weight: bold;
+    color: white;
+}
+.kpi-delta {
+    font-size: 13px;
+    color: #22c55e;
+}
+
+/* ===== INPUT ===== */
+.stTextInput input {
+    background: rgba(255,255,255,0.05) !important;
+    color: white !important;
+    border-radius: 10px;
+}
+
+/* ===== BUTTON ===== */
+.stButton button {
+    background: linear-gradient(90deg,#6366f1,#8b5cf6);
+    color: white;
+    border-radius: 10px;
+    border: none;
+}
+.stButton button:hover {
+    opacity: 0.85;
+}
+
+/* ===== TABS ===== */
+button[data-baseweb="tab"] {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+}
+button[aria-selected="true"] {
+    background: linear-gradient(90deg,#6366f1,#8b5cf6);
+    color: white;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-thumb {
+    background: #6366f1;
+    border-radius: 10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+st.markdown(
+    '<div class="purple-header"> drift project </div>',
+    unsafe_allow_html=True
+)
+
+
+# ==========================================================
 # ROLE BASED TABS
-# =============================
+# ==========================================================
+
 if role == "Official":
     tabs = [
         "Home",
@@ -845,11 +983,13 @@ elif role == "Student":
     tabs = [
         "Home",
         "Student Dashboard",
-        "Mock Interview"   
+        "Mock Interview"
     ]
+
 
 if "active_tab" not in st.session_state:
     st.session_state["active_tab"] = tabs[0]
+
 
 cols = st.columns(len(tabs))
 
@@ -861,8 +1001,8 @@ for i, tab in enumerate(tabs):
     ):
         st.session_state["active_tab"] = tab
 
-selected_tab = st.session_state["active_tab"]
 
+selected_tab = st.session_state["active_tab"]
 
 if selected_tab == "Home":
 
@@ -875,9 +1015,8 @@ if selected_tab == "Home":
 
     with col1:
         st.markdown("""
-        <div class="card">
-        <h2 style="margin-bottom:5px;">Placement Intelligence Apex</h2>
-        <p style="color:#6b7280;">AI-powered analytics platform for placements</p>
+        <div class="glass-header">
+            Placement Intelligence Apex
         </div>
         """, unsafe_allow_html=True)
         st.write(f"Welcome **{username}**")
@@ -912,17 +1051,17 @@ if selected_tab == "Home":
     # ================= KPI CARDS =================
     c1,c2,c3,c4 = st.columns(4)
 
-    def kpi(title, value, extra, delta):
+    def kpi(title, value, delta):
         st.markdown(f"""
         <div class="kpi-card">
             <div class="kpi-title">{title}</div>
             <div class="kpi-value">{value}</div>
-            <div class="kpi-delta">{extra} | {delta}</div>
+            <div class="kpi-delta">{delta}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with c1:
-        kpi("Total Students", total_students, f"/ {placed_students}", t1) 
+        kpi("Total Students", f"{total_students} / {placed_students}", t1) 
 
     with c2:
         kpi("Companies", companies, t2)
@@ -1264,6 +1403,7 @@ if selected_tab == "Student Dashboard":
                 #  LEFT PROFILE PANEL
                 # =========================
                 with left:
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=110)
 
@@ -1294,9 +1434,7 @@ if selected_tab == "Student Dashboard":
                     c4.metric("Conferences", profile["Conferences"])
 
                     # PROCESS FLOW
-                    
-
-            
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     steps = ["Profile","Skills","Aptitude","Interview","Placement"]
                     progress = int(score // 20)
@@ -1315,6 +1453,7 @@ if selected_tab == "Student Dashboard":
                     col1, col2 = st.columns(2)
 
                     with col1:
+                        st.markdown('<div class="glass">', unsafe_allow_html=True)
                         st.markdown("### SGPA Trend")
 
                         st.plotly_chart(
@@ -1325,6 +1464,7 @@ if selected_tab == "Student Dashboard":
                         st.markdown('</div>', unsafe_allow_html=True)
 
                     with col2:
+                        st.markdown('<div class="glass">', unsafe_allow_html=True)
                         st.markdown("### Attendance Trend")
 
                         st.plotly_chart(
@@ -1335,7 +1475,7 @@ if selected_tab == "Student Dashboard":
                         st.markdown('</div>', unsafe_allow_html=True)
 
                     # SUBJECT ANALYSIS
-                    
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     st.markdown("### Subject Intelligence")
 
@@ -1365,7 +1505,7 @@ if selected_tab == "Student Dashboard":
                     st.markdown('</div>', unsafe_allow_html=True)
 
                     # SKILLS + ACTIVITIES
-                    
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     chip_html = "".join([f'<span class="chip">{s}</span>' for s in skills])
                     st.markdown("### Skills")
@@ -1380,7 +1520,8 @@ if selected_tab == "Student Dashboard":
 
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                    
+                    # CORRELATION
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     st.markdown("### Data Intelligence")
                     num_df = df.select_dtypes(include=np.number)
@@ -1395,7 +1536,7 @@ if selected_tab == "Student Dashboard":
 
                     import calendar, datetime
 
-                    
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
                     st.markdown("###  Calendar")
 
                     today = datetime.date.today()
@@ -1404,7 +1545,7 @@ if selected_tab == "Student Dashboard":
                     st.markdown('</div>', unsafe_allow_html=True)
 
                     # ACHIEVEMENTS
-                    
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     total_ach = profile["Hackathons"] + profile["Papers"] + profile["Conferences"]
 
@@ -1414,7 +1555,7 @@ if selected_tab == "Student Dashboard":
                     st.markdown('</div>', unsafe_allow_html=True)
 
                     # AI INSIGHT
-
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     st.markdown("### AI Insight")
                     st.info(ai_summary(profile))

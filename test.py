@@ -1,9 +1,10 @@
-#git pull origin main --rebase
-#git push origin main
-#echo ".streamlit/secrets.toml" >> .gitignore
-#git add .
-#git commit -m "removed secrets"
-#git push
+# git pull origin main --rebase
+# git push origin main
+# echo ".streamlit/secrets.toml" >> .gitignore
+# git add .
+# git commit -m "removed secrets"
+# git push
+
 import uuid
 import streamlit as st
 import pandas as pd
@@ -18,7 +19,7 @@ from difflib import get_close_matches
 import os
 import PyPDF2
 
-#communication and interview libraries
+# communication and interview libraries
 from audiorecorder import audiorecorder
 import speech_recognition as sr
 from textblob import TextBlob
@@ -48,37 +49,62 @@ st.set_page_config(
     layout="wide",
     page_icon="  "
 )
+
+
+# ================================
+# CUSTOM CSS FOR LOGIN PAGE
+# ================================
+
 st.markdown("""
 <style>
-.block-container {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+
+/* Main background */
+.stApp {
+    background: linear-gradient(135deg,#0f172a,#020617);
+    color:white;
 }
+
+/* Glass card style */
+.glass-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* Glass header */
+.glass-header {
+    background: rgba(139,92,246,0.35);
+    backdrop-filter: blur(15px);
+    border-radius: 14px;
+    padding: 20px;
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:white;
+}
+
+/* KPI glass cards */
+.metric-card {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 15px;
+    border:1px solid rgba(255,255,255,0.12);
+}
+
+/* Input glass */
+.stTextInput > div > div > input {
+    background: rgba(255,255,255,0.08);
+    color:white;
+    border-radius:10px;
+}
+
 </style>
 """, unsafe_allow_html=True)
-
-def load_css():
-    with open("styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-load_css()
-def login_page():
-
-    st.markdown('<div class="login-container">', unsafe_allow_html=True)
-
-    
-    login_type = st.selectbox("Login As", [
-        "Official (Placement Cell)",
-        "Student",
-        "Company Admin"
-    ])
-
-    username = st.text_input("Username / StudentID")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login", use_container_width=True):
-        # keep your existing logic
-        pass
 
 
 
@@ -816,18 +842,166 @@ def speech_to_text(audio_bytes):
 
 if "active_tab" not in st.session_state:
     st.session_state["active_tab"] = "Home"
+# ==========================================================
+# HEADER STYLE
+# ==========================================================
 
-px.defaults.template = "simple_white"
+st.markdown("""
+<style>
 
-# =============================
+/* ===== MAIN BACKGROUND ===== */
+.stApp {
+    background: linear-gradient(135deg, #020617, #0f172a);
+    color: #e2e8f0;
+}
+
+/* ===== REMOVE HEADER SPACE ===== */
+header {visibility: hidden;}
+.block-container {padding-top: 1rem;}
+
+/* ===== GLASS HEADER ===== */
+.glass-header {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    padding: 20px;
+    border-radius: 14px;
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+
+/* ===== CARD ===== */
+.card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(18px);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+/* ===== KPI ===== */
+.kpi-card {
+    background: rgba(255,255,255,0.05);
+    padding: 18px;
+    border-radius: 14px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: 0.3s;
+}
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(99,102,241,0.4);
+}
+
+.kpi-title {
+    font-size: 14px;
+    color: #cbd5f5;
+}
+.kpi-value {
+    font-size: 26px;
+    font-weight: bold;
+    color: white;
+}
+.kpi-delta {
+    font-size: 13px;
+    color: #22c55e;
+}
+
+/* ===== INPUT ===== */
+.stTextInput input {
+    background: rgba(255,255,255,0.05) !important;
+    color: white !important;
+    border-radius: 10px;
+}
+
+/* ===== BUTTON ===== */
+.stButton button {
+    background: linear-gradient(90deg,#6366f1,#8b5cf6);
+    color: white;
+    border-radius: 10px;
+    border: none;
+}
+.stButton button:hover {
+    opacity: 0.85;
+}
+
+/* ===== TABS ===== */
+button[data-baseweb="tab"] {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+}
+button[aria-selected="true"] {
+    background: linear-gradient(90deg,#6366f1,#8b5cf6);
+    color: white;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-thumb {
+    background: #6366f1;
+    border-radius: 10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+import datetime
+
+username = st.session_state.get("username", "User")
+now = datetime.datetime.now()
+
+col1, col2, col3 = st.columns([7, 2, 1])
+
+with col1:
+    st.markdown(""" 
+    <div class="glass-header"> 
+        Placement Intelligence Apex 
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown(f"""
+    <div style="
+        background: rgba(255,255,255,0.05);
+        padding: 10px;
+        border-radius: 10px;
+        text-align:center;
+    ">
+        <div style="color:#cbd5f5; font-size:13px;">Welcome {username}</div>
+        <div style="font-size:12px; color:#94a3b8;">
+            {now.strftime("%d %b %Y | %H:%M")}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Logout"):
+        st.session_state["auth_token"] = None
+        st.session_state["role"] = None
+        st.session_state["username"] = None
+        st.rerun()
+
+st.markdown(
+    '<div class="purple-header"> drift project </div>',
+    unsafe_allow_html=True
+)
+
+
+# ==========================================================
 # ROLE BASED TABS
-# =============================
+# ==========================================================
+
 if role == "Official":
     tabs = [
         "Home",
         "University Dashboard",
         "Student Dashboard",
-        "Admin Company Analysis",
         "Company Dashboard",
         "New Company Drive",
         "Communication Analyzer",
@@ -845,11 +1019,13 @@ elif role == "Student":
     tabs = [
         "Home",
         "Student Dashboard",
-        "Mock Interview"   
+        "Mock Interview"
     ]
+
 
 if "active_tab" not in st.session_state:
     st.session_state["active_tab"] = tabs[0]
+
 
 cols = st.columns(len(tabs))
 
@@ -861,38 +1037,10 @@ for i, tab in enumerate(tabs):
     ):
         st.session_state["active_tab"] = tab
 
+
 selected_tab = st.session_state["active_tab"]
 
-
 if selected_tab == "Home":
-
-    import datetime
-
-    username = st.session_state.get("username", "User")
-
-    # ================= HEADER =================
-    col1, col2 = st.columns([8,1])
-
-    with col1:
-        st.markdown("""
-        <div class="card">
-        <h2 style="margin-bottom:5px;">Placement Intelligence Apex</h2>
-        <p style="color:#6b7280;">AI-powered analytics platform for placements</p>
-        </div>
-        """, unsafe_allow_html=True)
-        st.write(f"Welcome **{username}**")
-
-    with col2:
-        if st.button("Logout"):
-            st.session_state["auth_token"] = None
-            st.session_state["role"] = None
-            st.session_state["username"] = None
-            st.rerun()
-
-    now = datetime.datetime.now()
-    st.caption(now.strftime("%A | %d %B %Y | %H:%M:%S"))
-
-    st.markdown("---")
 
     # ================= DATA =================
     total_students = df["StudentID"].nunique()
@@ -901,42 +1049,8 @@ if selected_tab == "Home":
     avg_package = round(df[df["Status"]=="Placed"]["Package"].mean(),2)
     placement_rate = round((placed_students/total_students)*100,2)
 
-    # ================= FAKE TREND (you can replace with real) =================
-    import random
-    t1 = f"+{random.randint(2,10)}%"
-    t2 = f"+{random.randint(2,10)}%"
-    t3 = f"+{random.randint(1,5)}%"
-    t4 = f"+{random.randint(1,5)}%"
-    t5 = f"+{random.randint(2,8)}%"
-
-    # ================= KPI CARDS =================
-    c1,c2,c3,c4 = st.columns(4)
-
-    def kpi(title, value, extra, delta):
-        st.markdown(f"""
-        <div class="kpi-card">
-            <div class="kpi-title">{title}</div>
-            <div class="kpi-value">{value}</div>
-            <div class="kpi-delta">{extra} | {delta}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c1:
-        kpi("Total Students", total_students, f"/ {placed_students}", t1) 
-
-    with c2:
-        kpi("Companies", companies, t2)
-
-    with c3:
-        kpi("Avg Package (LPA)", avg_package, t3)
-
-    with c4:
-        kpi("Placement Rate", f"{placement_rate}%", t4)
-
-    st.markdown("----")
-
     # ================= SECOND ROW (INSIGHTS PANEL) =================
-    colA, colB = st.columns([2,1])
+    colA, colB ,colC = st.columns([2,2,1])
 
     with colA:
         st.markdown("### Placement Trend")
@@ -944,16 +1058,6 @@ if selected_tab == "Home":
         st.plotly_chart(fig_trend, use_container_width=True)
 
     with colB:
-        st.markdown("### Quick Insights")
-        st.info(f"""
-         Placement Rate is {placement_rate}%  
-         Average Package is {avg_package} LPA  
-         {companies} companies participated  
-        """)
-
-    c6 = st.columns(1)
-
-    with c6:
         st.markdown("### Branch-wise Placement")
         branch_df_reset = branch_df.reset_index()
 
@@ -965,6 +1069,15 @@ if selected_tab == "Home":
         )
 
         st.plotly_chart(fig_branch, use_container_width=True)
+        
+
+    with colC:
+        st.markdown("### Quick Insights")
+        st.info(f"""
+         Placement Rate is {placement_rate}%  
+         Average Package is {avg_package} LPA  
+         {companies} companies participated  
+        """)
 
    
     # =======================
@@ -1081,96 +1194,244 @@ if selected_tab == "Home":
 # UNIVERSITY DASHBOARD
 # =======================
 if selected_tab == "University Dashboard":
-    st.markdown("##    Placement Overview Dashboard")
 
-    # ---------------- YEAR-WISE PLACEMENT RATE ----------------
-    st.markdown("###    Year-wise Placement Rate")
+    st.markdown("## 🎓 University Placement Dashboard")
 
-    year_placement = df.groupby("Year").apply(
-        lambda x: round((x[x["Status"]=="Placed"]["StudentID"].nunique()
-                         / x["StudentID"].nunique())*100,2)
-    ).reset_index()
+    # ================= FILTERS =================
+    f1, f2, f3 = st.columns(3)
 
-    year_placement.columns = ["Year", "Placement Rate (%)"]
+    with f1:
+        branch = st.selectbox("Branch", ["All"] + sorted(df["Branch"].dropna().unique()))
 
-    fig2 = px.line(
-        year_placement,
-        x="Year",
-        y="Placement Rate (%)",
-        markers=True
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+    with f2:
+        year = st.selectbox("Year", ["All"] + sorted(df["Year"].dropna().unique()))
 
-    # ---------------- YEAR-WISE AVERAGE PACKAGE ----------------
-    st.markdown("###    Year-wise Average Package")
+    with f3:
+        status = st.selectbox("Status", ["All", "Placed", "Not Placed"])
 
-    year_package = df[df["Status"]=="Placed"].groupby("Year")["Package"].mean().reset_index()
-    year_package["Package"] = round(year_package["Package"],2)
+    # ================= FILTER APPLY =================
+    filtered = df.copy()
 
-    fig3 = px.area(
-        year_package,
-        x="Year",
-        y="Package"
-    )
-    st.plotly_chart(fig3, use_container_width=True)
+    if branch != "All":
+        filtered = filtered[filtered["Branch"] == branch]
 
-    # ---------------- STATUS DISTRIBUTION ----------------
-    st.markdown("###    Overall Placement Distribution")
+    if year != "All":
+        filtered = filtered[filtered["Year"] == year]
 
-    status_count = df["Status"].value_counts().reset_index()
-    status_count.columns = ["Status", "Count"]
+    if status != "All":
+        filtered = filtered[filtered["Status"] == status]
 
-    fig4 = px.pie(
-        status_count,
-        names="Status",
-        values="Count",
-        hole=0.5
-    )
-    st.plotly_chart(fig4, use_container_width=True)
+    placed = filtered[filtered["Status"] == "Placed"]
 
+    # ================= KPI ROW =================
+    import random
+    t1 = f"+{random.randint(2,10)}%"
+    t2 = f"+{random.randint(2,10)}%"
+    t3 = f"+{random.randint(1,5)}%"
+    t4 = f"+{random.randint(1,5)}%"
+    t5 = f"+{random.randint(2,8)}%"
 
-    #-----------------Year-wise Placement Performance
-    st.subheader("Year-wise Placement Performance")
-    yearly = df[df["Status"]=="Placed"].groupby("Year")["StudentID"].nunique().reset_index()
-    fig1 = px.bar(yearly, x="Year", y="StudentID", template="plotly_white",
-                  title="Year-wise Unique Placements")
-    st.plotly_chart(fig1, use_container_width=True)
+    c1,c2,c3,c4 = st.columns(4)
 
+    def kpi(title, value, color):
+        st.markdown(f"""
+        <div style="
+            background: rgba(255,255,255,0.05);
+            padding: 18px;
+            border-radius: 14px;
+            text-align: center;
+            border-left: 5px solid {color};
+        ">
+            <div style="font-size:14px; color:#cbd5f5;">{title}</div>
+            <div style="font-size:26px; font-weight:bold; color:white;">{value}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # ================= BRANCH PERFORMANCE =================
+    with c1:
+        kpi("Total Students", f"{total_students} / {placed_students}", "#6366f1")  
 
-    st.subheader("   Branch Placement Contribution")
+    with c2:
+        kpi("Companies", companies, "#8b5cf6")  
 
-    branch_perf = df[df["Status"]=="Placed"].groupby("Branch")["StudentID"].nunique().reset_index()
+    with c3:
+        kpi("Avg Package", avg_package, "#3b82f6")  
 
-    fig5 = px.pie(
-        branch_perf,
-        names="Branch",
-        values="StudentID",
-        hole=0.4,
-        template="plotly_white"
-    )
+    with c4:
+        kpi("Placement Rate", f"{placement_rate}%", "#22c55e")  
 
-    st.plotly_chart(fig5, use_container_width=True)
+    st.markdown("----")
 
-    # ================= TOP COMPANIES =================
+    if "active_chart" not in st.session_state:
+        st.session_state["active_chart"] = None
 
-    st.subheader("   Top Hiring Companies")
+    st.markdown("""
+    <style>
+    .stButton button {
+        background: linear-gradient(90deg,#6366f1,#8b5cf6);
+        color: white;
+        border-radius: 10px;
+        border: none;
+    }
+    .stButton button:hover {
+        background: linear-gradient(90deg,#22c55e,#16a34a);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    top_companies = df[df["Status"]=="Placed"]["Company"].value_counts().head(10).reset_index()
-    top_companies.columns = ["Company","Placements"]
-
-    fig6 = px.bar(
-        top_companies,
-        x="Company",
-        y="Placements",
-        template="plotly_white"
-    )
-
-    st.plotly_chart(fig6, use_container_width=True)
+    col1, col2, col3 ,col4, col5, col6= st.columns(6)
 
 
+    with col1:
+        if st.button("1.Hiring Trend"):
+            st.session_state["active_chart"] = "trend"
 
+    with col2:
+        if st.button("2.Salary Distribution"):
+            st.session_state["active_chart"] = "salary"
+
+    with col3:
+        if st.button("3.Sector Distribution"):
+            st.session_state["active_chart"] = "sector"
+
+    with col4:
+        if st.button("4.Branch Placement"):
+            st.session_state["active_chart"] = "branch"
+
+    with col5:
+        if st.button("5.Placement Trend"):
+            st.session_state["active_chart"] = "placement"
+
+    with col6:
+        if st.button("6.Top Companies"):
+            st.session_state["active_chart"] = "companies"
+    
+    st.markdown("----")
+
+    chart = st.session_state["active_chart"]
+
+    if chart == "trend":
+        st.markdown("### 1.Hiring Trend")
+
+        trend = filtered.groupby("Year")["StudentID"].count().reset_index()
+        fig = px.line(trend, x="Year", y="StudentID", markers=True)
+        fig.update_traces(line_color="#22c55e")
+        fig.update_layout(
+            yaxis_tickformat=","   
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+
+    elif chart == "salary":
+        st.markdown("### 2.Salary Distribution")
+
+        salary = placed.copy()
+        salary["Bracket"] = pd.cut(
+            salary["Package"],
+            bins=[0,5,10,15,25,50],
+            labels=["0-5","5-10","10-15","15-25","25+"]
+        )
+
+        df2 = salary["Bracket"].value_counts().reset_index()
+        df2.columns = ["Bracket", "Count"]
+
+        fig = px.bar(df2, x="Bracket", y="Count")
+        fig.update_traces(marker_color="#3b82f6")  # blue
+        st.plotly_chart(fig, use_container_width=True)
+        
+
+    elif chart == "sector":
+        st.markdown("### 3.Sector Distribution")
+
+        df2 = filtered["Branch"].value_counts().reset_index()
+        df2.columns = ["Branch", "Count"]
+
+        fig = px.pie(df2, names="Branch", values="Count", hole=0.6)
+        
+        fig.update_traces(
+            marker=dict(colors=[
+                "#6366f1", "#22c55e", "#f59e0b", "#ef4444", "#14b8a6"
+            ])
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    elif chart == "branch":
+        st.markdown("### 4.Branch Placement")
+
+        df2 = placed.groupby("Branch")["StudentID"].nunique().reset_index()
+        fig = px.bar(df2, x="Branch", y="StudentID")
+        
+        fig.update_traces(marker_color="#8b5cf6")  # violet
+        st.plotly_chart(fig, use_container_width=True)
+
+    elif chart == "placement":
+        st.markdown("### 5.Placement Trend")
+
+        df2 = placed.groupby("Year")["StudentID"].nunique().reset_index()
+        fig = px.line(df2, x="Year", y="StudentID", markers=True)
+        
+        fig.update_traces(line_color="#f59e0b")  # orange
+        st.plotly_chart(fig, use_container_width=True)
+
+    elif chart == "companies":
+        st.markdown("### Top Companies")
+
+        df2 = placed["Company"].value_counts().head(10).reset_index()
+        df2.columns = ["Company", "Count"]
+
+        fig = px.bar(df2, x="Company", y="Count")
+        
+        fig.update_traces(marker_color="#06b6d4")  # cyan
+        st.plotly_chart(fig, use_container_width=True)
+
+
+    # ================= AI EXPLAINER =================
+    st.markdown("----")
+    st.markdown("##  Easy Explanation ")
+
+    if st.button("Explain Dashboard"):
+
+        with st.spinner("AI analyzing data..."):
+
+            try:
+                # Prepare summary data
+                summary = f"""
+    Placement Rate: {placement_rate}%
+    Total Students: {total_students}
+    Placed Students: {placed_students}
+    Companies: {companies}
+    Average Package: {avg_package}
+
+    Top Companies:
+    {placed["Company"].value_counts().head(5).to_string()}
+
+    Branch Performance:
+    {placed.groupby("Branch")["StudentID"].nunique().to_string()}
+
+    Year Trend:
+    {placed.groupby("Year")["StudentID"].nunique().to_string()}
+    """
+
+                prompt = f"""
+    You are an expert placement analyst.
+
+    Explain this placement dashboard data in VERY SIMPLE English.
+
+    Rules:
+    - No technical jargon
+    - Use bullet points
+    - Make it easy for students to understand
+    - Give insights + suggestions
+
+    DATA:
+    {summary}
+    """
+
+                result = call_gemini(prompt)
+
+                st.success(result)
+
+            except Exception as e:
+                st.error(f"AI Error: {str(e)}")
 # =======================
 # STUDENT DASHBOARD
 # =======================   
@@ -1244,26 +1505,24 @@ if selected_tab == "Student Dashboard":
             # =========================
             tabs = st.tabs([
                 "Overview",
-                "Academics",
-                "Skills & Activities",
                 "Placements",
                 "AI Insights"
             ])
-
+            
+            if "student_view" not in st.session_state:
+                st.session_state["student_view"] = None
+            
             # ==========================================================
             # OVERVIEW (FULL)
             # ==========================================================
             with tabs[0]:
-
-                # =========================
-                #  MAIN LAYOUT (LEFT - CENTER - RIGHT)
-                # =========================
-                left, center, right = st.columns([1.2, 3, 1.3])
+                col1, col2, = st.columns([1, 5])
 
                 # =========================
                 #  LEFT PROFILE PANEL
                 # =========================
-                with left:
+                with col1:
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=110)
 
@@ -1284,19 +1543,20 @@ if selected_tab == "Student Dashboard":
                 # =========================
                 #  CENTER PANEL
                 # =========================
-                with center:
+                with col2:
 
-                    # KPI STRIP
+                    # ================= STATE =================
+                    view = st.session_state["student_view"]
+
+                    # ================= KPI STRIP =================
                     c1,c2,c3,c4 = st.columns(4)
                     c1.metric("Skills", len(skills))
                     c2.metric("Hackathons", profile["Hackathons"])
                     c3.metric("Papers", profile["Papers"])
                     c4.metric("Conferences", profile["Conferences"])
 
-                    # PROCESS FLOW
-                    
-
-            
+                    # ================= PROCESS FLOW =================
+                    st.markdown('<div class="glass">', unsafe_allow_html=True)
 
                     steps = ["Profile","Skills","Aptitude","Interview","Placement"]
                     progress = int(score // 20)
@@ -1310,277 +1570,351 @@ if selected_tab == "Student Dashboard":
                     st.markdown(flow_html, unsafe_allow_html=True)
 
                     st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown("----")
 
-                    # SGPA + ATTENDANCE
-                    col1, col2 = st.columns(2)
+                    # ================= BUTTONS =================
+                    b1, b2, b3, b4, b5, b6 = st.columns(6)
 
-                    with col1:
+                    if b1.button("1.SGPA Trend"):
+                        st.session_state["student_view"] = "sgpa"
+
+                    if b2.button("2.Attendance"):
+                        st.session_state["student_view"] = "attendance"
+
+                    if b3.button("3.Subjects"):
+                        st.session_state["student_view"] = "subjects"
+
+                    if b4.button("4.Skills"):
+                        st.session_state["student_view"] = "skills"
+
+                    if b5.button("5.Activities"):
+                        st.session_state["student_view"] = "activities"
+
+                    if b6.button("6.Achievements"):
+                        st.session_state["student_view"] = "achievements"
+
+                    # ================= SHOW BELOW (IMPORTANT) =================
+                    st.markdown("----")
+
+                    view = st.session_state["student_view"]
+
+                    if view == "sgpa":
+
                         st.markdown("### SGPA Trend")
 
-                        st.plotly_chart(
-                            px.line(pd.DataFrame({"Sem":range(1,9),"SGPA":sgpas}),
-                                    x="Sem",y="SGPA",markers=True),
-                            use_container_width=True
-                        )
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        col1, col2 = st.columns(2)
 
-                    with col2:
+                        # Graph
+                        sgpa_df = pd.DataFrame({"Sem":range(1,9),"SGPA":sgpas})
+                        col1.plotly_chart(px.line(sgpa_df, x="Sem", y="SGPA", markers=True), use_container_width=True)
+
+                        # Extra Insights
+                        col2.metric("Current SGPA", round(avg_sgpa,2))
+                        col2.metric("Class Avg", round(class_avg,2))
+
+                        growth = (sgpas[-1]-sgpas[0])/7
+                        predicted = sgpas[-1] + growth
+
+                        col2.metric("Predicted SGPA", round(predicted,2))
+
+                    elif view == "attendance":
+
                         st.markdown("### Attendance Trend")
 
-                        st.plotly_chart(
-                            px.line(pd.DataFrame({"Sem":range(1,9),"Attendance":attendance}),
-                                    x="Sem",y="Attendance"),
-                            use_container_width=True
+                        att_df = pd.DataFrame({"Sem":range(1,9),"Attendance":attendance})
+                        st.plotly_chart(px.line(att_df, x="Sem", y="Attendance"), use_container_width=True)
+
+
+                    elif view == "subjects":
+
+                        st.markdown("### Subject Performance")
+
+                        subject_cols = [
+                            c for c in df.columns 
+                            if "_Sem" in c and not any(x in c for x in ["SGPA","Attendance","Backlogs"])
+                        ]
+
+                        sem = st.selectbox("Semester", [1,2,3,4,5,6,7,8])
+
+                        cols = [c for c in subject_cols if f"_Sem{sem}" in c]
+                        sub = [c.replace(f"_Sem{sem}","") for c in cols]
+                        marks = [profile[c] for c in cols]
+
+                        sdf = pd.DataFrame({"Subject":sub,"Marks":marks})
+                        st.plotly_chart(px.bar(sdf, x="Subject", y="Marks"), use_container_width=True)
+                        if view == "sgpa":
+
+                            st.markdown("### SGPA Trend")
+
+                            col1, col2 = st.columns(2)
+
+                            # Graph
+                            sgpa_df = pd.DataFrame({"Sem":range(1,9),"SGPA":sgpas})
+                            col1.plotly_chart(px.line(sgpa_df, x="Sem", y="SGPA", markers=True), use_container_width=True)
+
+                            # Extra Insights
+                            col2.metric("Current SGPA", round(avg_sgpa,2))
+                            col2.metric("Class Avg", round(class_avg,2))
+
+                            growth = (sgpas[-1]-sgpas[0])/7
+                            predicted = sgpas[-1] + growth
+
+                            col2.metric("Predicted SGPA", round(predicted,2))
+
+
+                    elif view == "skills":
+
+                        st.markdown("### Skills Analysis")
+
+                        skill_df = pd.DataFrame({
+                            "Skill": skills,
+                            "Level": [80 + 5*i for i in range(len(skills))]
+                        })
+
+                        col1, col2 = st.columns(2)
+
+                        col1.plotly_chart(px.bar(skill_df,x="Skill",y="Level"), use_container_width=True)
+
+                        # Strength calculation
+                        strength = (
+                            len(skills)*10 +
+                            profile["Hackathons"]*5 +
+                            profile["Papers"]*8 +
+                            profile["Conferences"]*6 +
+                            profile["Sports"]*3 +
+                            profile["Clubs"]*3
                         )
-                        st.markdown('</div>', unsafe_allow_html=True)
 
-                    # SUBJECT ANALYSIS
-                    
+                        strength = min(strength,100)
 
-                    st.markdown("### Subject Intelligence")
-
-                    subject_cols = [c for c in df.columns if "_Sem" in c and not any(x in c for x in ["SGPA","Attendance","Backlogs"])]
-
-                    sem = st.selectbox("Semester", [1,2,3,4,5,6,7,8], key="profile_sem")
-
-                    cols = [c for c in subject_cols if f"_Sem{sem}" in c]
-                    sub = [c.replace(f"_Sem{sem}","") for c in cols]
-                    marks = [profile[c] for c in cols]
-
-                    sdf = pd.DataFrame({"Subject":sub,"Marks":marks})
-
-                    c1,c2 = st.columns(2)
-                    c1.plotly_chart(
-                        px.bar(sdf, x="Subject", y="Marks"),
-                        use_container_width=True,
-                        key="subject_bar_chart"
-                    )
-
-                    c2.plotly_chart(
-                        px.line_polar(sdf, r="Marks", theta="Subject", line_close=True),
-                        use_container_width=True,
-                        key="subject_radar_chart"
-                    )
-
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                    # SKILLS + ACTIVITIES
-                    
-
-                    chip_html = "".join([f'<span class="chip">{s}</span>' for s in skills])
-                    st.markdown("### Skills")
-                    st.markdown(chip_html, unsafe_allow_html=True)
-
-                    activity_df = pd.DataFrame({
-                        "Type":["Sports","Clubs"],
-                        "Value":[profile["Sports"],profile["Clubs"]]
-                    })
-
-                    st.plotly_chart(px.pie(activity_df,names="Type",values="Value"),use_container_width=True)
-
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                    
-
-                    st.markdown("### Data Intelligence")
-                    num_df = df.select_dtypes(include=np.number)
-                    st.plotly_chart(px.imshow(num_df.corr()), use_container_width=True)
-
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                # =========================
-                #  RIGHT PANEL
-                # =========================
-                with right:
-
-                    import calendar, datetime
-
-                    
-                    st.markdown("###  Calendar")
-
-                    today = datetime.date.today()
-                    st.text(calendar.month(today.year, today.month))
-
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                    # ACHIEVEMENTS
-                    
-
-                    total_ach = profile["Hackathons"] + profile["Papers"] + profile["Conferences"]
-
-                    st.metric("Achievements", total_ach)
-                    st.progress(min(total_ach/10,1))
-
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                    # AI INSIGHT
+                        col2.metric("Overall Strength", f"{strength}%")
+                        col2.progress(strength/100)
 
 
-                    st.markdown("### AI Insight")
-                    st.info(ai_summary(profile))
+                    elif view == "activities":
 
-                    st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown("### Activities")
 
-                # =========================
-                #  FULL DATA (NO LOSS)
-                # =========================
+                        activity_df = pd.DataFrame({
+                            "Type":["Sports","Clubs"],
+                            "Count":[profile["Sports"], profile["Clubs"]]
+                        })
+
+                        st.plotly_chart(px.pie(activity_df, names="Type", values="Count"), use_container_width=True)
+
+
+                    elif view == "achievements":
+
+                        st.markdown("### Achievements")
+
+                        total_ach = profile["Hackathons"] + profile["Papers"] + profile["Conferences"]
+
+                        c1,c2,c3 = st.columns(3)
+
+                        c1.metric("Hackathons", profile["Hackathons"])
+                        c2.metric("Papers", profile["Papers"])
+                        c3.metric("Conferences", profile["Conferences"])
+
+                        st.metric("Total Achievements", total_ach)
+                st.markdown("## 🤖 Student AI Analysis")
+
+                if st.button("Analyze Complete Student Profile"):
+
+                    with st.spinner("Analyzing full student data..."):
+
+                        # ================= ACADEMIC =================
+                        growth = (sgpas[-1] - sgpas[0]) / 7
+                        trend = "Improving" if growth > 0 else "Declining"
+
+                        # ================= SUBJECTS =================
+                        subject_cols = [
+                            c for c in df.columns 
+                            if "_Sem" in c and not any(x in c for x in ["SGPA","Attendance","Backlogs"])
+                        ]
+
+                        subject_scores = {}
+                        for col in subject_cols:
+                            subject_scores[col] = profile[col]
+
+                        # ================= SKILLS =================
+                        skills_list = ", ".join(skills)
+
+                        # ================= ACTIVITIES =================
+                        activities_summary = f"""
+                Sports: {profile['Sports']}
+                Clubs: {profile['Clubs']}
+                Hackathons: {profile['Hackathons']}
+                Papers: {profile['Papers']}
+                Conferences: {profile['Conferences']}
+                """
+
+                        # ================= PLACEMENT =================
+                        total_attempts = len(stu_data)
+                        placed = len(stu_data[stu_data["Status"]=="Placed"])
+                        rejected = len(stu_data[stu_data["Status"]=="Rejected"])
+
+                        success_ratio = round((placed/total_attempts)*100,2) if total_attempts else 0
+                        avg_package = stu_data["Package"].mean() if not stu_data.empty else 0
+
+                        # ================= FINAL SUMMARY =================
+                        summary = f"""
+                STUDENT PROFILE:
+
+                Name: {profile['Name']}
+                Branch: {profile['Branch']}
+
+                ACADEMICS:
+                Average SGPA: {round(avg_sgpa,2)}
+                Trend: {trend}
+                Backlogs: {total_backlogs}
+                Attendance: {round(avg_att,2)}
+                Class Average: {round(class_avg,2)}
+                Rank: {student_rank}
+                Percentile: {percentile}
+
+                SUBJECT MARKS:
+                {subject_scores}
+
+                SKILLS:
+                {skills_list}
+
+                ACTIVITIES:
+                {activities_summary}
+
+                PLACEMENT:
+                Attempts: {total_attempts}
+                Offers: {placed}
+                Rejected: {rejected}
+                Success Rate: {success_ratio}%
+                Average Package: {round(avg_package,2)}
+                """
+
+                        prompt = f"""
+                Analyze this student completely.
+
+                Instructions:
+                - Use simple English
+                - Use bullet points
+                - Divide into sections:
+                1. Academic Performance
+                2. Skills & Activities
+                3. Placement Readiness
+                4. Strengths
+                5. Weaknesses
+                6. Suggestions to improve
+
+                - Be clear and practical
+                - No technical words
+
+                DATA:
+                {summary}
+                """
+
+                        result = call_gemini(prompt)
+
+                        st.success(result)
                 with st.expander("View All Attributes"):
                     st.dataframe(profile.to_frame(name="Value"))
-
-            # ==========================================================
-            # ACADEMICS (FULL  NOTHING REMOVED)
-            # ==========================================================
-            with tabs[1]:
-
-                # KPIs
-                c1,c2,c3,c4,c5 = st.columns(5)
-                c1.metric("SGPA", round(avg_sgpa,2))
-                c2.metric("Class Avg", round(class_avg,2))
-                c3.metric("Rank", student_rank)
-                c4.metric("Percentile", f"{percentile}%")
-                c5.metric("Backlogs", int(total_backlogs))
-
-                # Comparison
-                comp_df = pd.DataFrame({
-                    "Type": ["Student","Class"],
-                    "SGPA": [avg_sgpa, class_avg]
-                })
-                st.plotly_chart(px.bar(comp_df,x="Type",y="SGPA"), use_container_width=True)
-
-                # Trend
-                sem_df = pd.DataFrame({"Semester":range(1,9),"SGPA":sgpas})
-                st.plotly_chart(px.line(sem_df,x="Semester",y="SGPA",markers=True),
-                                use_container_width=True)
-
-                # Prediction
-                growth = (sgpas[-1]-sgpas[0])/7
-                predicted = sgpas[-1] + growth
-                st.metric("Predicted SGPA", round(predicted,2))
-
-                # DOMAIN INTELLIGENCE (YOUR ORIGINAL LOOP)
-                subject_cols = [c for c in df.columns if "_Sem" in c and not any(x in c for x in ["SGPA","Attendance","Backlogs"])]
-
-                domain_scores = {"AI/ML":0,"Core CS":0,"Finance":0}
-
-                for col in subject_cols:
-                    val = profile[col]
-                    name = col.lower()
-
-                    if "ai" in name:
-                        domain_scores["AI/ML"] += val
-                    elif "db" in name or "os" in name:
-                        domain_scores["Core CS"] += val
-                    elif "finance" in name:
-                        domain_scores["Finance"] += val
-
-                best_domain = max(domain_scores, key=domain_scores.get)
-                st.success(f"Best Domain: {best_domain}")
-
-                # SUBJECT ANALYSIS
-                sem = st.selectbox(
-                    "Semester",
-                    [1,2,3,4,5,6,7,8],
-                    key="overview_sem"
-                )
-
-                cols = [c for c in df.columns if f"_Sem{sem}" in c and not any(x in c for x in ["SGPA","Attendance","Backlogs"])]
-                sub = [c.replace(f"_Sem{sem}","") for c in cols]
-                marks = [profile[c] for c in cols]
-
-                sdf = pd.DataFrame({"Subject":sub,"Marks":marks})
-
-                col1,col2 = st.columns(2)
-                col1.plotly_chart(px.bar(sdf,x="Subject",y="Marks"),use_container_width=True)
-
-                fig = px.line_polar(sdf,r="Marks",theta="Subject",line_close=True)
-                col2.plotly_chart(fig, use_container_width=True)
-
-                # DISTRIBUTION
-                st.plotly_chart(px.histogram(df,x="Avg_SGPA"), use_container_width=True)
-
-                # RISK
-                if avg_sgpa < class_avg:
-                    st.warning("Below class average")
-                if total_backlogs > 0:
-                    st.warning("Backlogs present")
-
-                # EXPORT
-                report = f"SGPA:{avg_sgpa}, Rank:{student_rank}, Domain:{best_domain}"
-                st.download_button("Download Report", report, "report.txt")
-
-            # ==========================================================
-            # SKILLS & ACTIVITIES (FULL)
-            # ==========================================================
-            with tabs[2]:
-
-                skill_df = pd.DataFrame({
-                    "Skill": skills,
-                    "Level": [80 + 5*i for i in range(len(skills))]
-                })
-
-                st.plotly_chart(px.bar(skill_df,x="Skill",y="Level"),use_container_width=True)
-
-                st.metric("Hackathons", profile["Hackathons"])
-                st.metric("Papers", profile["Papers"])
-                st.metric("Conferences", profile["Conferences"])
-
-                activity_df = pd.DataFrame({
-                    "Type": ["Sports","Clubs"],
-                    "Count": [profile["Sports"], profile["Clubs"]]
-                })
-
-                st.plotly_chart(px.pie(activity_df,names="Type",values="Count"),use_container_width=True)
-
-                strength = (
-                    len(skills)*10 +
-                    profile["Hackathons"]*5 +
-                    profile["Papers"]*8 +
-                    profile["Conferences"]*6 +
-                    profile["Sports"]*3 +
-                    profile["Clubs"]*3
-                )
-                strength = min(strength,100)
-
-                st.progress(strength/100)
-                st.metric("Strength", f"{strength}%")
-
+                
             # ==========================================================
             # PLACEMENTS (FULL)
             # ==========================================================
-            with tabs[3]:
+            with tabs[1]:
 
+                st.markdown("##  Placement Dashboard")
+
+                # ================= KPI STRIP =================
                 total_attempts = len(stu_data)
                 placed = len(stu_data[stu_data["Status"]=="Placed"])
                 rejected = len(stu_data[stu_data["Status"]=="Rejected"])
 
                 success_ratio = round((placed/total_attempts)*100,2) if total_attempts else 0
-
-                c1,c2,c3,c4 = st.columns(4)
-                c1.metric("Attempts", total_attempts)
-                c2.metric("Offers", placed)
-                c3.metric("Rejected", rejected)
-                c4.metric("Success %", f"{success_ratio}%")
-
-                st.plotly_chart(px.pie(names=["Placed","Rejected"],values=[placed,rejected]))
-
-                st.plotly_chart(px.bar(stu_data,x="Company",y="Package",color="Status"))
-
-                if not stu_data.empty:
-                    top_offer = stu_data.sort_values("Package", ascending=False).iloc[0]
-                    st.success(f"Top Offer: {top_offer['Company']} - {top_offer['Package']} LPA")
-
-                if "Placed_Date" in stu_data.columns:
-                    st.plotly_chart(px.scatter(stu_data,x="Placed_Date",y="Company",size="Package"))
-
-                st.dataframe(stu_data)
-
                 avg_package = stu_data["Package"].mean() if not stu_data.empty else 0
-                st.metric("Average Package", round(avg_package,2))
 
+                k1,k2,k3,k4,k5 = st.columns(5)
+
+                k1.metric("Attempts", total_attempts)
+                k2.metric("Offers", placed)
+                k3.metric("Rejected", rejected)
+                k4.metric("Success %", f"{success_ratio}%")
+                k5.metric("Avg Package", round(avg_package,2))
+
+                st.markdown("----")
+
+                # ================= ROW 1 =================
+                col1, col2 = st.columns(2)
+
+                # 🔹 Selection Distribution
+                with col1:
+                    st.markdown("### Selection Distribution")
+
+                    fig1 = px.pie(
+                        names=["Placed","Rejected"],
+                        values=[placed, rejected],
+                        hole=0.6
+                    )
+                    fig1.update_traces(marker=dict(colors=["#22c55e","#ef4444"]))
+
+                    st.plotly_chart(fig1, use_container_width=True)
+
+                # 🔹 Company vs Package
+                with col2:
+                    st.markdown("### Package by Company")
+
+                    fig2 = px.bar(
+                        stu_data,
+                        x="Company",
+                        y="Package",
+                        color="Status"
+                    )
+
+                    st.plotly_chart(fig2, use_container_width=True)
+
+                st.markdown("----")
+
+                # ================= ROW 2 =================
+                col3, col4 = st.columns(2)
+
+                # 🔹 Timeline (Clean line instead of scatter)
+                with col3:
+                    st.markdown("### Placement Timeline")
+
+                    if "Placed_Date" in stu_data.columns:
+
+                        timeline_df = stu_data.groupby("Placed_Date")["StudentID"].count().reset_index()
+
+                        fig3 = px.line(
+                            timeline_df,
+                            x="Placed_Date",
+                            y="StudentID",
+                            markers=True
+                        )
+
+                        st.plotly_chart(fig3, use_container_width=True)
+
+                    else:
+                        st.info("No timeline data available")
+
+                # 🔹 Top Offer
+                with col4:
+                    st.markdown("### Top Offer")
+
+                    if not stu_data.empty:
+                        top_offer = stu_data.sort_values("Package", ascending=False).iloc[0]
+
+                        st.metric("Company", top_offer["Company"])
+                        st.metric("Package", f"{top_offer['Package']} LPA")
+
+                st.markdown("----")
+
+                # ================= TABLE =================
+                st.markdown("### Placement Records")
+
+                st.dataframe(stu_data, use_container_width=True)
             # ==========================================================
             # AI INSIGHTS (FULL)
             # ==========================================================
-            with tabs[4]:
+            with tabs[2]:
 
                 file = st.file_uploader("Upload Resume")
 
@@ -1600,132 +1934,10 @@ if selected_tab == "Student Dashboard":
                 st.progress(adj/100)
 
                 st.info(ai_summary(profile))
-# =======================
-# ADMIN COMPANY ANALYSIS
-# =======================
 
-if selected_tab == "Admin Company Analysis":
-    # ============================================================
-    # YOUR EXISTING COMPANY ANALYTICS (UNCHANGED)
-    # ============================================================
-
-    st.markdown("---")
-    st.subheader("   Company-wise Selection Analysis")
-
-    company_year = df[df["Status"]=="Placed"].groupby(["Year","Company"])["StudentID"].nunique().reset_index()
-
-    fig3 = px.bar(company_year, x="Company", y="StudentID", color="Year",
-                  template="plotly_white",
-                  title="Company-wise Placements per Year")
-    st.plotly_chart(fig3, use_container_width=True)
-
-
-# -----------------------------------------------------
-# 1. COMPANY HIRING PERFORMANCE ANALYSIS
-# -----------------------------------------------------
-    st.markdown("### 1   Company Hiring Performance")
-
-    company_perf = df.groupby("Company").agg(
-        Applicants=("StudentID","count"),
-        Selected=("Status",lambda x:(x=="Placed").sum())
-    ).reset_index()
-
-    company_perf["Selection Rate %"] = round(
-        (company_perf["Selected"]/company_perf["Applicants"])*100,2
-    )
-
-    fig = px.bar(
-        company_perf,
-        x="Company",
-        y="Selected",
-        color="Selection Rate %",
-        title="Company vs Selected Students"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-
-    # -----------------------------------------------------
-    # 6. COMPANY VISIT TREND
-    # -----------------------------------------------------
-    st.markdown("### 6   Company Visit Trend")
-
-    company_year = df.groupby(["Year","Company"])["StudentID"].count().reset_index()
-
-    fig = px.line(
-        company_year,
-        x="Year",
-        y="StudentID",
-        color="Company",
-        title="Company Visits Over Years"
-    )
-    st.plotly_chart(fig,use_container_width=True)
-
-
-
-
-    # -----------------------------------------------------
-    # 8. INTERNSHIP TO PPO CONVERSION
-    # -----------------------------------------------------
-    st.markdown("### 8   Internship to PPO Conversion")
-
-    temp_df = df.groupby("Year")["Package"].mean().reset_index()
-
-    fig = px.line(
-        temp_df,
-        x="Year",
-        y="Package",
-        markers=True
-    )
-
-    fig.update_traces(
-        mode="lines+markers",
-        line=dict(width=3),
-        marker=dict(size=8)
-    )
-
-    fig.update_layout(
-        template="plotly_white",
-        showlegend=False
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-
-    # -----------------------------------------------------
-    # 10. SKILL DEMAND ANALYSIS
-    # -----------------------------------------------------
-    st.markdown("###    Skill Demand Analysis")
-
-    skills = df["Skills"].str.split(",",expand=True).stack().value_counts().reset_index()
-    skills.columns = ["Skill","Count"]
-
-    fig = px.bar(
-        skills.head(10),
-        x="Skill",
-        y="Count",
-        title="Top Skills Required by Companies"
-    )
-    st.plotly_chart(fig,use_container_width=True)
-
-
-
-    # -----------------------------------------------------
-    # 15. TOP PAYING COMPANIES
-    # -----------------------------------------------------
-    st.markdown("### 1  5   Top Paying Companies")
-
-    top_pay = placed_df.groupby("Company")["Package"].max().reset_index()
-
-    fig = px.bar(
-        top_pay.sort_values("Package",ascending=False).head(10),
-        x="Company",
-        y="Package",
-        title="Top Paying Companies"
-    )
-    st.plotly_chart(fig,use_container_width=True)
-
-
-
+# ============================================================
+# 2. COMPANY DASHBOARD (ROLE BASED)
+# ============================================================
 if selected_tab == "Company Dashboard":
 
     st.markdown("## Company Intelligence Portal")
@@ -1785,11 +1997,7 @@ if selected_tab == "Company Dashboard":
         st.warning("No data available")
         st.stop()
 
-    # ======================================================
-    # DISPLAY DATA (SAFE)
-    # ======================================================
-
-    st.dataframe(comp_df)
+    
 
     # ======================================================
     # KPI DASHBOARD (GLASS STYLE)
@@ -1802,152 +2010,211 @@ if selected_tab == "Company Dashboard":
 
     avg_package = round(comp_df[comp_df["Status"] == "Placed"]["Package"].mean(), 2) if placed else 0
 
+    def kpi(title, value, color):
+        st.markdown(f"""
+        <div style="
+            background: rgba(255,255,255,0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 5px solid {color};
+            text-align:center;
+        ">
+            <div style="font-size:13px;color:#cbd5f5;">{title}</div>
+            <div style="font-size:24px;font-weight:bold;color:white;">{value}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
     k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("Applicants", total)
-    k2.metric("Selected", placed)
-    k3.metric("Rejected", rejected)
-    k4.metric("Success %", f"{success}%")
-    k5.metric("Avg Package", f"{avg_package} LPA")
 
-    st.markdown("---")
+    with k1:
+        kpi("Applicants", total, "#c3e211")  # purple
 
-    # ======================================================
-    # SUB TABS
-    # ======================================================
+    with k2:
+        kpi("Selected", placed, "#22c55e")  # green
 
-    company_tabs = st.tabs([
-        " Overview",
-        " Hiring Intelligence",
-        " Salary",
-        " Students",
-        " AI Insights"
-    ])
+    with k3:
+        kpi("Rejected", rejected, "#ef4444")  # red
 
-    # ======================================================
-    # OVERVIEW
-    # ======================================================
-    with company_tabs[0]:
+    with k4:
+        kpi("Success %", f"{success}%", "#3b82f6")  # blue
 
-        st.subheader(" Selection Distribution")
+    with k5:
+        kpi("Avg Package", f"{avg_package} LPA", "#f59e0b")  # orange
+    
+    st.markdown("----")
 
-        st.plotly_chart(
-            px.pie(
+    if "company_section" not in st.session_state:
+        st.session_state["company_section"] = "overview"
+
+    b1, b2, b3 = st.columns(3)
+
+    with b1:
+        if st.button("1.Overview"):
+            st.session_state["company_section"] = "overview"
+
+    with b2:
+        if st.button("2.Hiring"):
+            st.session_state["company_section"] = "hiring"
+
+    with b3:
+        if st.button("3.Salary"):
+            st.session_state["company_section"] = "salary"
+    st.markdown("----")
+
+    section = st.session_state["company_section"]
+
+    if section == "overview":
+        st.markdown("### 1. Overview Section")
+
+        # ================= FILTERS =================
+        f1, f2, f3 = st.columns(3)
+
+        with f1:
+            branch_filter = st.selectbox(
+                "Branch",
+                ["All"] + sorted(comp_df["Branch"].dropna().unique())
+            )
+
+        with f2:
+            year_filter = st.selectbox(
+                "Year",
+                ["All"] + sorted(comp_df["Year"].dropna().unique())
+            )
+
+        with f3:
+            status_filter = st.selectbox(
+                "Status",
+                ["All", "Placed", "Rejected"]
+            )
+
+        # ================= APPLY FILTER =================
+        filtered_comp = comp_df.copy()
+
+        if branch_filter != "All":
+            filtered_comp = filtered_comp[filtered_comp["Branch"] == branch_filter]
+
+        if year_filter != "All":
+            filtered_comp = filtered_comp[filtered_comp["Year"] == year_filter]
+
+        if status_filter != "All":
+            filtered_comp = filtered_comp[filtered_comp["Status"] == status_filter]
+
+        # ================= DISPLAY DATA =================
+        st.dataframe(filtered_comp, use_container_width=True)
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("Selection Distribution")
+
+            fig = px.pie(
                 names=["Selected", "Rejected"],
                 values=[placed, rejected],
                 hole=0.6
-            ),
-            use_container_width=True
-        )
-
-        st.subheader(" Year-wise Hiring")
-
-        yearly = comp_df.groupby("Year")["StudentID"].count().reset_index()
-
-        st.plotly_chart(
-            px.line(yearly, x="Year", y="StudentID", markers=True),
-            use_container_width=True
-        )
-
-    # ======================================================
-    # HIRING INTELLIGENCE
-    # ======================================================
-    with company_tabs[1]:
-
-        st.subheader(" Branch Hiring")
-
-        branch = comp_df.groupby("Branch")["StudentID"].count().reset_index()
-
-        st.plotly_chart(
-            px.bar(branch, x="Branch", y="StudentID"),
-            use_container_width=True
-        )
-
-        st.subheader(" Selection Success %")
-
-        branch_sel = comp_df.groupby("Branch").apply(
-            lambda x: (x["Status"] == "Placed").sum() / len(x) * 100
-        ).reset_index(name="Success %")
-
-        st.plotly_chart(
-            px.bar(branch_sel, x="Branch", y="Success %"),
-            use_container_width=True
-        )
-
-    # ======================================================
-    # SALARY
-    # ======================================================
-    with company_tabs[2]:
-
-        placed_df = comp_df[comp_df["Status"] == "Placed"].copy()
-
-        if not placed_df.empty:
-
-            c1, c2, c3 = st.columns(3)
-
-            c1.metric("Avg", round(placed_df["Package"].mean(), 2))
-            c2.metric("Max", placed_df["Package"].max())
-            c3.metric("Min", placed_df["Package"].min())
-
-            st.plotly_chart(
-                px.box(placed_df, y="Package"),
-                use_container_width=True
             )
+            fig.update_traces(marker=dict(colors=["#22c55e", "#ef4444"]))
 
-        else:
-            st.warning("No salary data")
+            st.plotly_chart(fig, use_container_width=True)
 
-    # ======================================================
-    # STUDENTS
-    # ======================================================
-    with company_tabs[3]:
+        with col2:
+            st.subheader("Year-wise Hiring")
 
-        placed_df = comp_df[comp_df["Status"] == "Placed"].copy()
+            yearly = comp_df.groupby("Year")["StudentID"].count().reset_index()
 
-        st.subheader(" Top Students")
+            fig = px.line(yearly, x="Year", y="StudentID", markers=True)
+            fig.update_traces(line_color="#6366f1")
 
-        top_students = placed_df.sort_values("Package", ascending=False).head(10)
+            st.plotly_chart(fig, use_container_width=True)
 
-        st.dataframe(
-            top_students[["Name", "Branch", "Package"]],
-            use_container_width=True
-        )
+    elif section == "hiring":
+        st.markdown("### 2. Hiring Section")
 
-        st.subheader(" Skill Demand")
+        col1, col2 = st.columns(2)
+    
+        with col1:
+            st.subheader("Branch Hiring")
 
-        skills = comp_df["Skills"].str.split(",", expand=True).stack().value_counts().reset_index()
-        skills.columns = ["Skill", "Count"]
+            branch = comp_df.groupby("Branch")["StudentID"].count().reset_index()
 
-        st.plotly_chart(
-            px.bar(skills.head(10), x="Skill", y="Count"),
-            use_container_width=True
-        )
+            fig = px.bar(branch, x="Branch", y="StudentID")
+            fig.update_traces(marker_color="#3b82f6")
 
-    # ======================================================
-    # AI INSIGHTS
-    # ======================================================
-    with company_tabs[4]:
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            st.subheader("Success %")
+
+            branch_sel = comp_df.groupby("Branch").apply(
+                lambda x: (x["Status"] == "Placed").sum() / len(x) * 100
+            ).reset_index(name="Success %")
+
+            fig = px.bar(branch_sel, x="Branch", y="Success %")
+            fig.update_traces(marker_color="#22c55e")
+
+            st.plotly_chart(fig, use_container_width=True)
+
+    elif section == "salary":
+        st.markdown("### 3. Salary Section")
 
         placed_df = comp_df[comp_df["Status"] == "Placed"]
 
         if not placed_df.empty:
 
-            top_branch = placed_df["Branch"].value_counts().idxmax()
-            avg_package = placed_df["Package"].mean()
+            salary = placed_df.copy()
 
-            st.success(f"Top Hiring Branch: {top_branch}")
-            st.success(f"Average Package: {round(avg_package, 2)} LPA")
+            salary["Bracket"] = pd.cut(
+                salary["Package"],
+                bins=[0,5,10,15,25,50],
+                labels=["0-5","5-10","10-15","15-25","25+"]
+            )
 
-        difficulty = round(len(comp_df) / max(len(placed_df), 1), 2)
-        st.warning(f"Hiring Difficulty Score: {difficulty}")
+            salary_dist = salary["Bracket"].value_counts().reset_index()
+            salary_dist.columns = ["Bracket", "Count"]
 
-        st.markdown("###  Ask AI")
+            fig = px.bar(salary_dist, x="Bracket", y="Count")
+            fig.update_traces(marker_color="#f59e0b")
 
-        q = st.text_input("Ask about this company")
+            st.plotly_chart(fig, use_container_width=True)
 
-        if q:
-            answer = gpt_ai_engine(q, comp_df)
-            st.info(answer)
+        else:
+            st.warning("No salary data")
 
+    st.markdown("----")
+
+    
+    print("AI Insights Section")
+
+    st.markdown("### AI Insights")
+
+    if st.button("Explain Company Data"):
+
+            summary = f"""
+    Applicants: {total}
+    Selected: {placed}
+    Rejected: {rejected}
+    Success Rate: {success}%
+    Average Package: {avg_package}
+    """
+
+            prompt = f"""
+    Explain this company data simply.
+
+    - Use bullet points
+    - Give insights
+    - Suggest improvements
+
+    DATA:
+    {summary}
+    """
+
+            result = call_gemini(prompt)
+
+            st.info(result)
+
+# ============================================================
+# 3. NEW COMPANY DRIVE REGISTRATION
+# ===========================================================            
 if selected_tab == "New Company Drive":
     st.success("Register New Company Drive")
 
