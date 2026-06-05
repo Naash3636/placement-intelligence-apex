@@ -2422,7 +2422,7 @@ if selected_tab == "Communication Analyzer":
 
     audio = audio_recorder("Start Recording", "Stop Recording")
 
-    if len(audio) > 0:
+    if audio is not None and len(audio) > 0:
 
         with st.spinner("Processing your speech..."):
 
