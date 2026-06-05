@@ -5,7 +5,7 @@ plotly
 google-generativeai
 PyJWT
 PyPDF2
-streamlit-audiorecorder
+audio-recorder-streamlit
 sklearn.ensemble 
 cv2
 speech_recognition 
