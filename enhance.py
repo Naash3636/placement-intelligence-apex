@@ -18,7 +18,7 @@ import os
 import PyPDF2
 
 # communication and interview libraries
-from audio_recorder_streamlit import audiorecorder
+from audio_recorder_streamlit import audio_recorder
 import speech_recognition as sr
 from textblob import TextBlob
 import time
@@ -2420,7 +2420,7 @@ if selected_tab == "Communication Analyzer":
     st.title("AI Interview Communication Analyzer")
     st.caption("Real-time + HR-level evaluation system")
 
-    audio = audiorecorder("Start Recording", "Stop Recording")
+    audio = audio_recorder("Start Recording", "Stop Recording")
 
     if len(audio) > 0:
 
