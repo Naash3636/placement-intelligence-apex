@@ -6,8 +6,8 @@ google-generativeai
 PyJWT
 PyPDF2
 audio-recorder-streamlit
-sklearn.ensemble 
-cv2
-speech_recognition 
-textblob
+scikit-learn
+opencv-python-headless
 pydub
+SpeechRecognition
+textblob
