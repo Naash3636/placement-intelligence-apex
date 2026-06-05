@@ -18,7 +18,7 @@ import os
 import PyPDF2
 
 # communication and interview libraries
-from audiorecorder import audiorecorder
+from audio_recorder_streamlit import audiorecorder
 import speech_recognition as sr
 from textblob import TextBlob
 import time
