@@ -10,8 +10,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
 import jwt
 import datetime
 import re
@@ -1195,7 +1193,7 @@ if selected_tab == "Home":
 # =======================
 if selected_tab == "University Dashboard":
 
-    st.markdown("## 🎓 University Placement Dashboard")
+    st.markdown("##  University Placement Dashboard")
 
     # ================= FILTERS =================
     f1, f2, f3 = st.columns(3)
@@ -1716,7 +1714,7 @@ if selected_tab == "Student Dashboard":
                         c3.metric("Conferences", profile["Conferences"])
 
                         st.metric("Total Achievements", total_ach)
-                st.markdown("## 🤖 Student AI Analysis")
+                st.markdown("##  Student AI Analysis")
 
                 if st.button("Analyze Complete Student Profile"):
 
@@ -1844,7 +1842,7 @@ if selected_tab == "Student Dashboard":
                 # ================= ROW 1 =================
                 col1, col2 = st.columns(2)
 
-                # 🔹 Selection Distribution
+                #  Selection Distribution
                 with col1:
                     st.markdown("### Selection Distribution")
 
@@ -1857,7 +1855,7 @@ if selected_tab == "Student Dashboard":
 
                     st.plotly_chart(fig1, use_container_width=True)
 
-                # 🔹 Company vs Package
+                #  Company vs Package
                 with col2:
                     st.markdown("### Package by Company")
 
@@ -1875,7 +1873,7 @@ if selected_tab == "Student Dashboard":
                 # ================= ROW 2 =================
                 col3, col4 = st.columns(2)
 
-                # 🔹 Timeline (Clean line instead of scatter)
+                #  Timeline (Clean line instead of scatter)
                 with col3:
                     st.markdown("### Placement Timeline")
 
@@ -1895,7 +1893,7 @@ if selected_tab == "Student Dashboard":
                     else:
                         st.info("No timeline data available")
 
-                # 🔹 Top Offer
+                #  Top Offer
                 with col4:
                     st.markdown("### Top Offer")
 
